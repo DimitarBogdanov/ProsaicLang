@@ -5,6 +5,14 @@ namespace ProsaicLang.Compiler.Scanning;
 
 public sealed class Lexer
 {
+    private static readonly Dictionary<string, TokenType> Keywords = new()
+    {
+        ["var"] = TokenType.KeywordVar,
+        ["ret"] = TokenType.KeywordRet,
+        ["type"] = TokenType.KeywordType,
+        ["enum"] = TokenType.KeywordEnum
+    };
+    
     public Lexer(string fileName)
     {
         _fileName = fileName;
@@ -109,8 +117,11 @@ public sealed class Lexer
                     
                     string value = sb.ToString();
                     sb.Clear();
+
+                    Keywords.TryGetValue(value, out TokenType? keywordType);
+                    keywordType ??= TokenType.Identifier;
                     
-                    AddTok(TokenType.Identifier, value, line, col);
+                    AddTok(keywordType, value, line, col);
                     
                     continue;
                 }
