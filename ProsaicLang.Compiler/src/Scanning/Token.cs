@@ -24,6 +24,7 @@ public sealed class TokenType
     public static readonly TokenType Arrow = new("->");
     public static readonly TokenType Colon = new(":");
     public static readonly TokenType Semicolon = new(";");
+    public static readonly TokenType OpDot = new(".");
     public static readonly TokenType OpPlus = new("+");
     public static readonly TokenType OpMinus = new("-");
     public static readonly TokenType OpMul = new("*");

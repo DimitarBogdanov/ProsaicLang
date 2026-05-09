@@ -4,7 +4,7 @@ using ProsaicLang.Compiler.Scanning;
 Lexer lexer = new("test.pl");
 string source = """
                 main(args: Str[]) -> Int { 
-                    var x = 1.;
+                    var x = a.b;
                 }
                 """;
 using MemoryStream ms = new(Encoding.UTF8.GetBytes(source));

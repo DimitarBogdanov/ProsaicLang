@@ -77,6 +77,12 @@ public sealed class Lexer
                         }
                     }
 
+                    if (!hasWholePart && current is '.' && !Char.IsDigit((char)reader.Peek()))
+                    {
+                        // just a dot
+                        AddTok(TokenType.OpDot, ".", line, colStart);
+                        continue;
+                    }
                     if (current is '.')
                     {
                         expectedDecimalPart = true;
@@ -98,7 +104,18 @@ public sealed class Lexer
                         }
                     }
 
-                    if (!hasWholePart && !hasDecimalPart || (expectedDecimalPart && !hasDecimalPart))
+                    int? addOperatorDotTokenCol = null;
+                    if (expectedDecimalPart && !hasDecimalPart)
+                    {
+                        // number is similar to 1. 3. etc
+                        // so maybe it's something like 1.method()
+                        
+                        type = TokenType.Int;
+                        addOperatorDotTokenCol = col;
+                        col--;
+                        sb.Remove(sb.Length - 1, 1);
+                    }
+                    else if (!hasWholePart && !hasDecimalPart)
                     {
                         Messages.Add(new CompilerMessage(CompilerMessageType.Error,
                             $"Malformed number '{sb}'",
@@ -108,6 +125,12 @@ public sealed class Lexer
 
                     AddTok(type, sb.ToString(), line, colStart, line, hasWholePart ? col : col - 1);
                     sb.Clear();
+
+                    if (addOperatorDotTokenCol.HasValue)
+                    {
+                        col++;
+                        AddTok(TokenType.OpDot, ".", line, addOperatorDotTokenCol.Value);
+                    }
 
                     continue;
                 }
