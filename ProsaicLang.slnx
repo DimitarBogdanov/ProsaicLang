@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="ProsaicLang.Compiler/ProsaicLang.Compiler.csproj" />
+  <Project Path="ProsaicLang/ProsaicLang.csproj" />
+</Solution>
