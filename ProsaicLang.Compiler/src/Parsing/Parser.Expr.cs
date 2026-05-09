@@ -36,6 +36,22 @@ public partial class Parser
                 Tokens = [tok]
             };
 
+        if (tok.Type == TokenType.Decimal)
+            return new NodeExprDecimal
+            {
+                ValueToken = tok,
+                Location = tok.Location,
+                Tokens = [tok]
+            };
+        
+        if (tok.Type == TokenType.String)
+            return new NodeExprStr
+            {
+                ValueToken = tok,
+                Location = tok.Location,
+                Tokens = [tok]
+            };
+
         throw new InvalidOperationException("Unknown primitive expression");
     }
 }
