@@ -1,4 +1,5 @@
-﻿using ProsaicLang.Compiler.Data;
+﻿using ProsaicLang.Compiler.Ast;
+using ProsaicLang.Compiler.Data;
 using ProsaicLang.Compiler.Scanning;
 
 namespace ProsaicLang.Compiler.Parsing;
@@ -19,11 +20,20 @@ public partial class Parser
 
     public void Run()
     {
+        List<NodeFuncDef> funcDefs = [];
+        List<NodeTypeDef> typeDefs = [];
+        
         while (!_stream.IsEof)
         {
+            if (IsTypeDef())
+            {
+                typeDefs.Add(ParseTypeDef());
+                continue;
+            }
+            
             if (IsFuncDef())
             {
-                var x = ParseFuncDef();
+                funcDefs.Add(ParseFuncDef());
                 continue;
             }
 
