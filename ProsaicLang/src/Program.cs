@@ -3,7 +3,17 @@ using ProsaicLang.Compiler.Parsing;
 using ProsaicLang.Compiler.Scanning;
 
 string source = """
-                type MyInt = Int
+                type WeatherReport {
+                    test: Int;
+                    asd: {
+                        maiko: Mai;
+                        ne: ti;
+                        varvi: {
+                            az: sum;
+                            zvqra: xd;
+                        };
+                    };
+                }
                 main(args: Str[]) -> Int {
                     var x = true;
                 }
