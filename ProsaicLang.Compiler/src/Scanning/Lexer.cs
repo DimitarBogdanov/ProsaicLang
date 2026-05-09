@@ -43,50 +43,147 @@ public sealed class Lexer
 
             col++;
 
-            if (Char.IsControl((char)current))
+            if (Char.IsControl((char)current) || Char.IsWhiteSpace((char)current))
             {
                 continue;
             }
 
-            if (current is '.' or >= '0' and <= '9')
+            switch (current)
             {
-                TokenType type = current == '.' ? TokenType.Decimal : TokenType.Int;
-                int colStart = col;
-                bool hasWholePart = false;
-                if (type == TokenType.Int)
+                case '.' or >= '0' and <= '9':
                 {
-                    hasWholePart = true;
-                    sb.Append((char)current);
-                    while ((current = reader.Peek()) is >= '0' and <= '9')
+                    TokenType type = current == '.' ? TokenType.Decimal : TokenType.Int;
+                    int colStart = col;
+                    bool hasWholePart = false;
+                    if (type == TokenType.Int)
                     {
-                        reader.Read();
+                        hasWholePart = true;
+                        sb.Append((char)current);
+                        while ((current = reader.Peek()) is >= '0' and <= '9')
+                        {
+                            reader.Read();
+                            sb.Append((char)current);
+                            col++;
+                        }
+                    }
+
+                    if (current is '.')
+                    {
+                        type = TokenType.Decimal;
+                        if (hasWholePart) reader.Read();
+                        if (sb.Length == 0)
+                        {
+                            sb.Append('0');
+                        }
+
                         sb.Append((char)current);
                         col++;
+                        while ((current = reader.Peek()) is >= '0' and <= '9')
+                        {
+                            reader.Read();
+                            sb.Append((char)current);
+                            col++;
+                        }
                     }
+
+                    AddTok(type, sb.ToString(), line, colStart, line, hasWholePart ? col : col - 1);
+                    sb.Clear();
+
+                    continue;
                 }
 
-                if (current is '.')
-                {
-                    type = TokenType.Decimal;
-                    if (hasWholePart) reader.Read();
-                    if (sb.Length == 0)
-                    {
-                        sb.Append('0');
-                    }
+                case '_' or >= 'a' and <= 'z' or >= 'A' and <= 'Z':
+                { 
                     sb.Append((char)current);
-                    col++;
-                    while ((current = reader.Peek()) is >= '0' and <= '9')
+
+                    while ((current = reader.Peek()) != -1 &&
+                           (
+                               current == '_'
+                               || Char.IsLetterOrDigit((char)current)
+                           ))
                     {
                         reader.Read();
-                        sb.Append((char)current);
                         col++;
+                        sb.Append((char)current);
                     }
+                    
+                    string value = sb.ToString();
+                    sb.Clear();
+                    
+                    AddTok(TokenType.Identifier, value, line, col);
+                    
+                    continue;
                 }
-                
-                AddTok(type, sb.ToString(), line, colStart, line, hasWholePart ? col : col - 1);
-                sb.Clear();
-                
-                continue;
+
+                case '(':
+                    AddTok(TokenType.ParenLeft, "(", line, col);
+                    continue;
+                case ')':
+                    AddTok(TokenType.ParenRight, ")", line, col);
+                    continue;
+                case '[':
+                    AddTok(TokenType.BracketLeft, "[", line, col);
+                    continue;
+                case ']':
+                    AddTok(TokenType.BracketRight, "]", line, col);
+                    continue;
+                case '{':
+                    AddTok(TokenType.CurlyLeft, "{", line, col);
+                    continue;
+                case '}':
+                    AddTok(TokenType.CurlyRight, "}", line, col);
+                    continue;
+                case ':':
+                    AddTok(TokenType.Colon, ":", line, col);
+                    continue;
+                case ';':
+                    AddTok(TokenType.Semicolon, ";", line, col);
+                    continue;
+                case '+':
+                    AddTok(TokenType.OpPlus, "+", line, col);
+                    continue;
+                case '*':
+                    AddTok(TokenType.OpMul, "*", line, col);
+                    continue;
+                case '/':
+                    AddTok(TokenType.OpDiv, "/", line, col);
+                    continue;
+                case '=':
+                    if (reader.Peek() == '=')
+                    {
+                        reader.Read();
+                        AddTok(TokenType.OpEq, "==", line, col, line, col++);
+                    }
+                    else
+                    {
+                        AddTok(TokenType.OpSet, "=", line, col);
+                    }
+
+                    continue;
+                case '-':
+                    if (reader.Peek() == '>')
+                    {
+                        reader.Read();
+                        AddTok(TokenType.Arrow, "->", line, col, line, col++);
+                    }
+                    else
+                    {
+                        AddTok(TokenType.OpMinus, "-", line, col);
+                    }
+
+                    continue;
+                case '!':
+                    if (reader.Peek() == '=')
+                    {
+                        reader.Read();
+                        AddTok(TokenType.OpNeq, "!=", line, col, line, col++);
+                    }
+                    else
+                    {
+                        AddTok(TokenType.OpBang, "!", line, col);
+                    }
+
+                    continue;
             }
             
             // if we reached here, then we didn't early exit

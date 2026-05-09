@@ -3,11 +3,12 @@ using ProsaicLang.Compiler.Scanning;
 
 Lexer lexer = new("test.pl");
 string source = """
-                123
-                456.1
-                .123
-                0.1
-                5
+                main(args: Str[]) -> Int {
+                    var x = 2;
+                    var y = 6;
+                    print(x+y);
+                    ret 0;
+                }
                 """;
 using MemoryStream ms = new(Encoding.UTF8.GetBytes(source));
 lexer.Run(ms);

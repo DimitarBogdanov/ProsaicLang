@@ -28,6 +28,10 @@ public sealed class TokenType
     public static readonly TokenType OpMinus = new("-");
     public static readonly TokenType OpMul = new("*");
     public static readonly TokenType OpDiv = new("/");
+    public static readonly TokenType OpSet = new("=");
+    public static readonly TokenType OpEq = new("=");
+    public static readonly TokenType OpNeq = new("!=");
+    public static readonly TokenType OpBang = new("!");
     public static readonly TokenType Int = new("integer");
     public static readonly TokenType Decimal = new("decimal");
     public static readonly TokenType KeywordVar = new("var");
