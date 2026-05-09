@@ -1,13 +1,19 @@
 ﻿using System.Text;
+using ProsaicLang.Compiler.Parsing;
 using ProsaicLang.Compiler.Scanning;
 
-Lexer lexer = new("test.pl");
 string source = """
-                main(args: Str[]) -> Int { 
-                    var x = a.b;
+                main(args: Str[]) -> Int {
+                    ;
                 }
                 """;
 using MemoryStream ms = new(Encoding.UTF8.GetBytes(source));
+Lexer lexer = new("test.pl");
 lexer.Run(ms);
-lexer.Tokens.ForEach(Console.WriteLine);
+// lexer.Tokens.ForEach(Console.WriteLine);
 lexer.Messages.ForEach(Console.WriteLine);
+
+Parser parser = new("test.pl", lexer.Tokens);
+parser.Run();
+parser.Messages.ForEach(Console.WriteLine);
+
