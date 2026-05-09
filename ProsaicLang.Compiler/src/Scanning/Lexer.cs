@@ -63,6 +63,8 @@ public sealed class Lexer
                     TokenType type = current == '.' ? TokenType.Decimal : TokenType.Int;
                     int colStart = col;
                     bool hasWholePart = false;
+                    bool hasDecimalPart = false;
+                    bool expectedDecimalPart = false;
                     if (type == TokenType.Int)
                     {
                         hasWholePart = true;
@@ -77,6 +79,7 @@ public sealed class Lexer
 
                     if (current is '.')
                     {
+                        expectedDecimalPart = true;
                         type = TokenType.Decimal;
                         if (hasWholePart) reader.Read();
                         if (sb.Length == 0)
@@ -88,10 +91,19 @@ public sealed class Lexer
                         col++;
                         while ((current = reader.Peek()) is >= '0' and <= '9')
                         {
+                            hasDecimalPart = true;
                             reader.Read();
                             sb.Append((char)current);
                             col++;
                         }
+                    }
+
+                    if (!hasWholePart && !hasDecimalPart || (expectedDecimalPart && !hasDecimalPart))
+                    {
+                        Messages.Add(new CompilerMessage(CompilerMessageType.Error,
+                            $"Malformed number '{sb}'",
+                            new FileLocation(_fileName, line, col)
+                        ));
                     }
 
                     AddTok(type, sb.ToString(), line, colStart, line, hasWholePart ? col : col - 1);
@@ -265,6 +277,10 @@ public sealed class Lexer
             
             // if we reached here, then we didn't early exit
             AddTok(TokenType.IllegalCharacter, ((char)current).ToString(), line, col);
+            Messages.Add(new CompilerMessage(CompilerMessageType.Error,
+                $"Unexpected character '{(char)current}'",
+                new FileLocation(_fileName, line, col)
+            ));
         }
     }
 
