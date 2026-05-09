@@ -40,6 +40,8 @@ public sealed class TokenType
     public static readonly TokenType Int = new("integer");
     public static readonly TokenType Decimal = new("decimal");
     public static readonly TokenType String = new("string");
+    public static readonly TokenType KeywordTrue = new("true");
+    public static readonly TokenType KeywordFalse = new("false");
     public static readonly TokenType KeywordVar = new("var");
     public static readonly TokenType KeywordRet = new("ret");
     public static readonly TokenType KeywordType = new("type");

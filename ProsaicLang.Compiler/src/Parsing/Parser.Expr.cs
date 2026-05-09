@@ -22,7 +22,9 @@ public partial class Parser
     {
         return _stream.CurrentIs(TokenType.Int)
             || _stream.CurrentIs(TokenType.Decimal)
-            || _stream.CurrentIs(TokenType.String);
+            || _stream.CurrentIs(TokenType.String)
+            || _stream.CurrentIs(TokenType.KeywordTrue)
+            || _stream.CurrentIs(TokenType.KeywordFalse);
     }
 
     private NodeExpr ParseExprPrimitive()
@@ -46,6 +48,14 @@ public partial class Parser
         
         if (tok.Type == TokenType.String)
             return new NodeExprStr
+            {
+                ValueToken = tok,
+                Location = tok.Location,
+                Tokens = [tok]
+            };
+
+        if (tok.Type == TokenType.KeywordTrue || tok.Type == TokenType.KeywordFalse)
+            return new NodeExprBoolean
             {
                 ValueToken = tok,
                 Location = tok.Location,

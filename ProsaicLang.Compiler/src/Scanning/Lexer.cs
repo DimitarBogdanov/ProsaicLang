@@ -10,7 +10,9 @@ public sealed class Lexer
         ["var"] = TokenType.KeywordVar,
         ["ret"] = TokenType.KeywordRet,
         ["type"] = TokenType.KeywordType,
-        ["enum"] = TokenType.KeywordEnum
+        ["enum"] = TokenType.KeywordEnum,
+        ["true"] = TokenType.KeywordTrue,
+        ["false"] = TokenType.KeywordFalse,
     };
     
     public Lexer(string fileName)
