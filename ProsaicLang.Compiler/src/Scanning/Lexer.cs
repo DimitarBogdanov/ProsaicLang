@@ -126,6 +126,72 @@ public sealed class Lexer
                     continue;
                 }
 
+                case '"':
+                {
+                    int startLine = line;
+                    int startCol = col;
+                    while ((current = reader.Peek()) != -1 && current != '"')
+                    {
+                        reader.Read();
+                        col++;
+
+                        if (current == '\n')
+                        {
+                            line++;
+                            col = 0;
+                        }
+                        
+                        if (current != '\\')
+                        {
+                            sb.Append((char)current);
+                        }
+                        else
+                        {
+                            current = reader.Read();
+                            if (current == -1)
+                                return;
+                            current = current switch
+                            {
+                                'n' => '\n',
+                                'b' => '\b',
+                                't' => '\t',
+                                '0' => '\0',
+                                '"' => '"',
+                                _ => '!'
+                            };
+                            if (current == '!')
+                            {
+                                Messages.Add(new CompilerMessage(CompilerMessageType.Error,
+                                    "Invalid escape sequence",
+                                    new FileLocation(_fileName, line, col)
+                                ));
+                            }
+                            else
+                            {
+                                sb.Append((char)current);
+                            }
+
+                            col++;
+                        }
+                    }
+
+                    if (current == '"')
+                    {
+                        reader.Read();
+                        col++;
+                        AddTok(TokenType.String, sb.ToString(), startLine, startCol, line, col);
+                        sb.Clear();
+                    }
+                    else
+                    {
+                        Messages.Add(new CompilerMessage(CompilerMessageType.Error,
+                            "Unexpected EOF while reading string",
+                            new FileLocation(_fileName, startLine, startCol, line, col - 1)
+                        ));
+                    }
+                    continue;
+                }
+
                 case '(':
                     AddTok(TokenType.ParenLeft, "(", line, col);
                     continue;
@@ -213,8 +279,8 @@ public sealed class Lexer
         AddTok(type, value, lineStart, colStart, lineStart, colStart + value.Length - 1);
     }
 
-    private void AddUnknownError(Token tok)
+    private void AddError(Token tok, string error)
     {
-        Messages.Add(new CompilerMessage(CompilerMessageType.Error, "Unknown token.", tok.Location, [tok]));
+        Messages.Add(new CompilerMessage(CompilerMessageType.Error, error, tok.Location, [tok]));
     }
 }
