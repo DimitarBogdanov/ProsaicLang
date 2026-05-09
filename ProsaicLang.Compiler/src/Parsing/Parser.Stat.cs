@@ -9,7 +9,8 @@ public partial class Parser
     private bool IsStat()
     {
         return IsStatBlock()
-               || IsStatNoOperation();
+               || IsStatNoOperation()
+               || IsStatVarDecl();
     }
 
     private NodeStat ParseStat()
@@ -22,6 +23,11 @@ public partial class Parser
         if (IsStatNoOperation())
         {
             return ParseStatNoOperation();
+        }
+
+        if (IsStatVarDecl())
+        {
+            return ParseStatVarDecl();
         }
 
         throw new InvalidOperationException("Unknown statement to parse");
@@ -83,6 +89,73 @@ public partial class Parser
         {
             Location = tok.Location,
             Tokens = [tok]
+        };
+    }
+
+    private bool IsStatVarDecl()
+    {
+        return _stream.CurrentIs(TokenType.KeywordVar);
+    }
+
+    private NodeStat ParseStatVarDecl()
+    {
+        Token keywordToken = _stream.Consume();
+        
+        if (!_stream.CurrentIs(TokenType.Identifier))
+        {
+            AddErrorExpectedToken(TokenType.Identifier, "for variable name");
+        }
+        
+        Token nameTok = _stream.Consume();
+        
+        TypeRef? specifiedType = null;
+        if (_stream.CurrentIs(TokenType.Colon))
+        {
+            _stream.Consume(); // :
+            if (IsTypeRef())
+            {
+                specifiedType = ParseTypeRef();
+            }
+            else
+            {
+                AddErrorExpectedToken(TokenType.Identifier, "for variable type (e.g. var x: Int)");
+            }
+        }
+        
+        NodeExpr? initExpr = null;
+        if (_stream.CurrentIs(TokenType.OpSet))
+        {
+            Token opSet = _stream.Consume();
+            if (!IsExpr())
+            {
+                Messages.Add(new CompilerMessage(CompilerMessageType.Error,
+                    "Expected value for variable",
+                    opSet.Location,
+                    [opSet, _stream.Peek()]
+                ));
+            }
+            else
+            {
+                initExpr = ParseExpr();
+            }
+        }
+
+        if (_stream.CurrentIs(TokenType.Semicolon))
+        {
+            _stream.Consume();
+        }
+        else
+        {
+            AddErrorExpectedSemicolon();
+        }
+
+        return new NodeStatVarDecl
+        {
+            NameToken = nameTok,
+            SpecifiedType = specifiedType,
+            Initializer = initExpr,
+            Location = nameTok.Location,
+            Tokens = _stream.GetTokenRange(keywordToken, _stream.Peek(-1))
         };
     }
 }

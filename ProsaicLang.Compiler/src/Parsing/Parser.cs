@@ -66,4 +66,24 @@ public partial class Parser
             [_stream.Peek()]
         ));   
     }
+    
+    private void AddErrorExpectedSemicolon()
+    {
+        Token lastToken = _stream.Peek(-1);
+
+        FileLocation lastCharacter = new FileLocation(
+            lastToken.Location.FileName,
+            lastToken.Location.EndLine,
+            lastToken.Location.EndColumn,
+            lastToken.Location.EndLine,
+            lastToken.Location.EndColumn
+        );
+        
+        Messages.Add(new CompilerMessage(
+            CompilerMessageType.Error,
+            "Expected semicolon",
+            lastCharacter,
+            [_stream.Peek(-1), _stream.Peek()]
+        ));   
+    }
 }

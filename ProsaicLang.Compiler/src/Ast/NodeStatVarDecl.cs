@@ -3,16 +3,16 @@ using ProsaicLang.Compiler.Scanning;
 
 namespace ProsaicLang.Compiler.Ast;
 
-public sealed class NodeFuncDef : Node
+public sealed class NodeStatVarDecl : NodeStat
 {
-    public NodeFuncDef()
-        : base("function definition")
+    public NodeStatVarDecl() : base("var declaration")
     {
     }
     
+    
     public required Token NameToken { get; init; }
-    public required NodeStat Body { get; init; }
-    public required TypeRef? ReturnType { get; init; }
+    public required TypeRef? SpecifiedType { get; init; }
+    public required NodeExpr? Initializer { get; init; }
     
     public string Name => NameToken.Value;
 }

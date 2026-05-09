@@ -4,7 +4,7 @@ using ProsaicLang.Compiler.Scanning;
 
 string source = """
                 main(args: Str[]) -> Int {
-                    ;
+                    var x = 1;
                 }
                 """;
 using MemoryStream ms = new(Encoding.UTF8.GetBytes(source));
