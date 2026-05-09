@@ -2,7 +2,10 @@
 
 namespace ProsaicLang.Compiler.Scanning;
 
-public sealed record Token(TokenType Type, string Value, FileLocation Location);
+public sealed record Token(TokenType Type, string Value, FileLocation Location)
+{
+    public bool IsEof => Type == TokenType.Eof;
+}
 
 public sealed class TokenType
 {
@@ -12,7 +15,7 @@ public sealed class TokenType
     }
     
     public string NiceName { get; set; }
-
+    
     public static readonly TokenType IllegalCharacter = new("<illegal character>");
     public static readonly TokenType Identifier = new("name");
     public static readonly TokenType ParenLeft = new("(");
@@ -25,6 +28,7 @@ public sealed class TokenType
     public static readonly TokenType Colon = new(":");
     public static readonly TokenType Semicolon = new(";");
     public static readonly TokenType OpDot = new(".");
+    public static readonly TokenType Comma = new(",");
     public static readonly TokenType OpPlus = new("+");
     public static readonly TokenType OpMinus = new("-");
     public static readonly TokenType OpMul = new("*");
@@ -40,6 +44,7 @@ public sealed class TokenType
     public static readonly TokenType KeywordRet = new("ret");
     public static readonly TokenType KeywordType = new("type");
     public static readonly TokenType KeywordEnum = new("enum");
+    public static readonly TokenType Eof = new("<End of file>");
 
     public override string ToString()
     {

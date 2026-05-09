@@ -251,6 +251,9 @@ public sealed class Lexer
                 case ';':
                     AddTok(TokenType.Semicolon, ";", line, col);
                     continue;
+                case ',':
+                    AddTok(TokenType.Comma, ",", line, col);
+                    continue;
                 case '+':
                     AddTok(TokenType.OpPlus, "+", line, col);
                     continue;
