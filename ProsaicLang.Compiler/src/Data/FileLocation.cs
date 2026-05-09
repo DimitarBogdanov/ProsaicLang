@@ -11,9 +11,9 @@ public record FileLocation(string FileName, int StartLine, int StartColumn, int 
     public static FileLocation CreateRange(FileLocation a, FileLocation b)
     {
         int startLine = Math.Min(a.StartLine, b.StartLine);
-        int startColumn = Math.Min(a.StartColumn, b.StartColumn);
+        int startColumn = a.StartLine == startLine ? a.StartColumn : b.StartColumn;
         int endLine = Math.Max(a.EndLine, b.EndLine);
-        int endColumn = Math.Max(a.EndColumn, b.EndColumn);
+        int endColumn = a.EndLine == endLine ? a.EndColumn : b.EndColumn;
         return new FileLocation(a.FileName, startLine, startColumn, endLine, endColumn);       
     }
 
