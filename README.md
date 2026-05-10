@@ -1,4 +1,4 @@
-﻿# ProsicLang
+﻿# Prosaic
 
 This is a small language, which is intentionally dull and
 simple. It features a static type system, which is similar
