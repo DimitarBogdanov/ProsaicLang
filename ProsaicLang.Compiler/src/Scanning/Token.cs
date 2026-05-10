@@ -36,7 +36,7 @@ public sealed class TokenType
     public static readonly TokenType OpMod = new("%");
     public static readonly TokenType OpPower = new("^");
     public static readonly TokenType OpSet = new("=");
-    public static readonly TokenType OpEq = new("=");
+    public static readonly TokenType OpEq = new("==");
     public static readonly TokenType OpNeq = new("!=");
     public static readonly TokenType OpGt = new(">");
     public static readonly TokenType OpGte = new(">=");
