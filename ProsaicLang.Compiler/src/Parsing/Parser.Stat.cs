@@ -229,7 +229,7 @@ public partial class Parser
         {
             NameToken = nameTok,
             SpecifiedType = specifiedType,
-            Initializer = initExpr,
+            Initialiser = initExpr,
             Location = nameTok.Location,
             Symbol = symbol,
             Tokens = _stream.GetTokenRange(keywordToken, _stream.Peek(-1))

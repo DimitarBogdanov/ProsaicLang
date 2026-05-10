@@ -13,13 +13,13 @@ public sealed class NodeStatVarDecl : NodeStat
 
     public required Token NameToken { get; init; }
     public required TypeRef SpecifiedType { get; init; }
-    public required NodeExpr? Initializer { get; init; }
+    public required NodeExpr? Initialiser { get; init; }
     public required SymVar Symbol { get; init; }
 
     public string Name => NameToken.Value;
 
-    public override string NiceName => Initializer != null
-        ? $"var {Name}{(SpecifiedType != null ? $": {SpecifiedType.Name}" : "")} = {Initializer.NiceName};"
+    public override string NiceName => Initialiser != null
+        ? $"var {Name}{(SpecifiedType != null ? $": {SpecifiedType.Name}" : "")} = {Initialiser.NiceName};"
         : Name;
 
     public override void AcceptVisitor(IVisitor visitor)
