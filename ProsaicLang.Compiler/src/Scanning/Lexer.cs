@@ -13,6 +13,8 @@ public sealed class Lexer
         ["enum"] = TokenType.KeywordEnum,
         ["true"] = TokenType.KeywordTrue,
         ["false"] = TokenType.KeywordFalse,
+        ["module"] = TokenType.KeywordModule,
+        ["import"] = TokenType.KeywordImport,
     };
     
     public Lexer(string fileName)
@@ -247,9 +249,6 @@ public sealed class Lexer
                 case '}':
                     AddTok(TokenType.CurlyRight, "}", line, col);
                     continue;
-                case ':':
-                    AddTok(TokenType.Colon, ":", line, col);
-                    continue;
                 case ';':
                     AddTok(TokenType.Semicolon, ";", line, col);
                     continue;
@@ -270,6 +269,18 @@ public sealed class Lexer
                     continue;
                 case '^':
                     AddTok(TokenType.OpPower, "^", line, col);
+                    continue;
+                case ':':
+                    if (reader.Peek() == ':')
+                    {
+                        reader.Read();
+                        AddTok(TokenType.DoubleColon, "::", line, col, line, col++);
+                    }
+                    else
+                    {
+                        AddTok(TokenType.Colon, ":", line, col);
+                    }
+
                     continue;
                 case '>':
                     if (reader.Peek() == '=')

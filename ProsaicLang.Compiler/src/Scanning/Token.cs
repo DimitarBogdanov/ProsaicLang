@@ -26,6 +26,7 @@ public sealed class TokenType
     public static readonly TokenType CurlyRight = new("}");
     public static readonly TokenType Arrow = new("->");
     public static readonly TokenType Colon = new(":");
+    public static readonly TokenType DoubleColon = new("::");
     public static readonly TokenType Semicolon = new(";");
     public static readonly TokenType OpDot = new(".");
     public static readonly TokenType Comma = new(",");
@@ -52,6 +53,8 @@ public sealed class TokenType
     public static readonly TokenType KeywordRet = new("ret");
     public static readonly TokenType KeywordType = new("type");
     public static readonly TokenType KeywordEnum = new("enum");
+    public static readonly TokenType KeywordModule = new("module");
+    public static readonly TokenType KeywordImport = new("import");
     public static readonly TokenType Eof = new("<End of file>");
 
     public override string ToString()

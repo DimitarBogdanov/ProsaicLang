@@ -1,4 +1,5 @@
-﻿using ProsaicLang.Compiler.Ast;
+﻿using System.Text;
+using ProsaicLang.Compiler.Ast;
 using ProsaicLang.Compiler.Data;
 using ProsaicLang.Compiler.Scanning;
 
@@ -22,6 +23,8 @@ public partial class Parser
     {
         List<NodeFuncDef> funcDefs = [];
         List<NodeTypeDef> typeDefs = [];
+        List<ModuleNameRef> imports = [];
+        ModuleNameRef? moduleName = null;
         
         while (!_stream.IsEof)
         {
@@ -36,6 +39,52 @@ public partial class Parser
                 if (IsFuncDef())
                 {
                     funcDefs.Add(ParseFuncDef());
+                    continue;
+                }
+
+                if (IsImport())
+                {
+                    var mod = ParseImport();
+                    imports.Add(mod);
+                    
+                    if (funcDefs.Count != 0 || typeDefs.Count != 0 || moduleName != null)
+                    {
+                        Messages.Add(new CompilerMessage(
+                            CompilerMessageType.Error,
+                            "Imports should be at the top of the file",
+                            mod.Location,
+                            mod.Tokens
+                        ));
+                    }
+                    
+                    continue;
+                }
+
+                if (IsModuleDecl())
+                {
+                    var mod = ParseModuleDecl();
+                    if (moduleName != null)
+                    {
+                        Messages.Add(new CompilerMessage(
+                            CompilerMessageType.Error,
+                            "Module has already been declared above",
+                            mod.Location,
+                            mod.Tokens
+                        ));
+                        continue;
+                    }
+
+                    if (funcDefs.Count != 0 || typeDefs.Count != 0)
+                    {
+                        Messages.Add(new CompilerMessage(
+                            CompilerMessageType.Error,
+                            "Module declaration must be after imports and before any other declarations",
+                            mod.Location,
+                            mod.Tokens
+                        ));
+                    }
+
+                    moduleName = mod;
                     continue;
                 }
             }
@@ -91,6 +140,146 @@ public partial class Parser
         }
 
         return current;
+    }
+
+    private bool IsImport()
+    {
+        return _stream.CurrentIs(TokenType.KeywordImport);
+    }
+
+    private ModuleNameRef ParseImport()
+    {
+        Token keyword = _stream.Consume();
+        
+        if (!_stream.CurrentIs(TokenType.Identifier))
+        {
+            Messages.Add(new CompilerMessage(
+                CompilerMessageType.Error,
+                "Expected module name",
+                FileLocation.CreateRange(keyword.Location, _stream.Peek().Location),
+                [keyword, _stream.Peek()]
+            ));
+            return new ModuleNameRef
+            {
+                Tokens = [keyword],
+                Location = keyword.Location,
+                Name = "<???>"
+            };
+        }
+        
+        Token moduleNameTok = _stream.Consume();
+
+        StringBuilder sb = new(moduleNameTok.Value);
+        while (_stream.CurrentIs(TokenType.DoubleColon))
+        {
+            _stream.Consume();
+            Token nextTok = _stream.Consume();
+            if (nextTok.Type != TokenType.Identifier)
+            {
+                Messages.Add(new CompilerMessage(
+                    CompilerMessageType.Error,
+                    "Expected name after ::",
+                    nextTok.Location,
+                    [nextTok]
+                ));
+
+                if (_stream.Peek().Location.StartLine != keyword.Location.StartLine)
+                {
+                    // probably just a missing semicolon or something
+                    throw new ParsingMustRecoverException();
+                }
+            }
+
+            sb.Append(':', 2);
+            sb.Append(nextTok.Value);
+        }
+
+        if (_stream.CurrentIs(TokenType.Semicolon))
+        {
+            _stream.Consume();
+        }
+        else
+        {
+            AddErrorExpectedSemicolon();
+        }
+
+        List<Token> tokens = _stream.GetTokenRange(keyword, _stream.Peek(-1));
+        return new ModuleNameRef
+        {
+            Tokens = tokens,
+            Location = FileLocation.CreateRange(keyword.Location, _stream.Peek(-1).Location),
+            Name = sb.ToString()
+        };
+    }
+    
+    private bool IsModuleDecl()
+    {
+        return _stream.CurrentIs(TokenType.KeywordModule);
+    }
+
+    private ModuleNameRef ParseModuleDecl()
+    {
+        Token keyword = _stream.Consume();
+        
+        if (!_stream.CurrentIs(TokenType.Identifier))
+        {
+            Messages.Add(new CompilerMessage(
+                CompilerMessageType.Error,
+                "Expected module name",
+                FileLocation.CreateRange(keyword.Location, _stream.Peek().Location),
+                [keyword, _stream.Peek()]
+            ));
+            return new ModuleNameRef
+            {
+                Tokens = [keyword],
+                Location = keyword.Location,
+                Name = "<???>"
+            };
+        }
+        
+        Token moduleNameTok = _stream.Consume();
+
+        StringBuilder sb = new(moduleNameTok.Value);
+        while (_stream.CurrentIs(TokenType.DoubleColon))
+        {
+            _stream.Consume();
+            Token nextTok = _stream.Consume();
+            if (nextTok.Type != TokenType.Identifier)
+            {
+                Messages.Add(new CompilerMessage(
+                    CompilerMessageType.Error,
+                    "Expected name after ::",
+                    nextTok.Location,
+                    [nextTok]
+                ));
+
+                if (_stream.Peek().Location.StartLine != keyword.Location.StartLine)
+                {
+                    // probably just a missing semicolon or something
+                    throw new ParsingMustRecoverException();
+                }
+            }
+
+            sb.Append(':', 2);
+            sb.Append(nextTok.Value);
+        }
+
+        if (_stream.CurrentIs(TokenType.Semicolon))
+        {
+            _stream.Consume();
+        }
+        else
+        {
+            AddErrorExpectedSemicolon();
+        }
+
+        List<Token> tokens = _stream.GetTokenRange(keyword, _stream.Peek(-1));
+        return new ModuleNameRef
+        {
+            Tokens = tokens,
+            Location = FileLocation.CreateRange(keyword.Location, _stream.Peek(-1).Location),
+            Name = sb.ToString()
+        };
     }
 
     private void AddErrorExpectedToken(TokenType expected, string whyIsItExpected)

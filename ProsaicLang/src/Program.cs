@@ -3,6 +3,8 @@ using ProsaicLang.Compiler.Parsing;
 using ProsaicLang.Compiler.Scanning;
 
 string source = """
+                import std;
+                module app;
                 main(args: Str[]) -> Int {
                     var x = a;
                     a = b;
