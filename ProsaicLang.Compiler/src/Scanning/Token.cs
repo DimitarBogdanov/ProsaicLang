@@ -36,6 +36,10 @@ public sealed class TokenType
     public static readonly TokenType OpSet = new("=");
     public static readonly TokenType OpEq = new("=");
     public static readonly TokenType OpNeq = new("!=");
+    public static readonly TokenType OpGt = new(">");
+    public static readonly TokenType OpGte = new(">=");
+    public static readonly TokenType OpLt = new("<");
+    public static readonly TokenType OpLte = new("<=");
     public static readonly TokenType OpBang = new("!");
     public static readonly TokenType Int = new("integer");
     public static readonly TokenType Decimal = new("decimal");

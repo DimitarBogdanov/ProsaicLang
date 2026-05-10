@@ -265,6 +265,30 @@ public sealed class Lexer
                 case '/':
                     AddTok(TokenType.OpDiv, "/", line, col);
                     continue;
+                case '>':
+                    if (reader.Peek() == '=')
+                    {
+                        reader.Read();
+                        AddTok(TokenType.OpGte, ">=", line, col, line, col++);
+                    }
+                    else
+                    {
+                        AddTok(TokenType.OpGt, ">", line, col);
+                    }
+
+                    continue;
+                case '<':
+                    if (reader.Peek() == '=')
+                    {
+                        reader.Read();
+                        AddTok(TokenType.OpLte, "<=", line, col, line, col++);
+                    }
+                    else
+                    {
+                        AddTok(TokenType.OpLt, "<", line, col);
+                    }
+
+                    continue;
                 case '=':
                     if (reader.Peek() == '=')
                     {
