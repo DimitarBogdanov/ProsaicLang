@@ -9,7 +9,8 @@ public partial class Parser
     private bool IsExpr()
     {
         return IsExprPrimitive()
-            || IsExprNameRef();
+            || IsExprNameRef()
+            || IsExprParen();
     }
 
     private NodeExpr ParseExpr()
@@ -18,8 +19,46 @@ public partial class Parser
             return ParseExprPrimitive();
         if (IsExprNameRef())
             return ParseExprNameRef();
+        if (IsExprParen())
+            return ParseExprParen();
 
         throw new InvalidOperationException("Unknown expression to parse");
+    }
+
+    private bool IsExprParen()
+    {
+        return _stream.CurrentIs(TokenType.ParenLeft);
+    }
+
+    private NodeExpr ParseExprParen()
+    {
+        Token open = _stream.Consume();
+
+        if (!IsExpr())
+        {
+            Messages.Add(new CompilerMessage(CompilerMessageType.Error, "Expected expression",
+                open.Location, [open, _stream.Peek()]
+            ));
+            throw new ParsingMustRecoverException();
+        }
+        
+        NodeExpr inner = ParseExpr();
+
+        Token? close = null;
+        if (!_stream.CurrentIs(TokenType.ParenRight))
+        {
+            AddErrorExpectedToken(TokenType.ParenRight, "to close expression");
+        }
+        else
+        {
+            close = _stream.Consume();
+        }
+        
+        inner.Tokens.Insert(0, open);
+        if (close != null)
+            inner.Tokens.Add(close);
+        
+        return inner;
     }
 
     private bool IsExprPrimitive()

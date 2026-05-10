@@ -29,7 +29,7 @@ main(args: Str[]) {
   * [ ] Expressions
     * [ ] Arithmetic/logic operators (`-` `+` `/` `*` `%` `==` `!=` `<` `>` `<=` `>=`)
     * [ ] Unary operators (`-` `+` `!`)
-    * [ ] Parentheses (`(expr)`)
+    * [X] Parentheses (`(expr)`)
     * [X] Primitives (numbers, bool, str)
 * [ ] Semantic analysis
   * TODO
