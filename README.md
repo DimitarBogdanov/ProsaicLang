@@ -18,7 +18,7 @@ main(args: Str[]) {
 * [ ] Parser
   * [X] Function definitions
   * [X] Variable definitions
-  * [ ] Variable assignments
+  * [X] Variable assignments
   * [X] Function calls
   * [ ] Module names & importing
   * [ ] Type definitions
