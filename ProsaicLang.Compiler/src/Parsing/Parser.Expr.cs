@@ -10,7 +10,8 @@ public partial class Parser
     {
         return IsExprPrimitive()
             || IsExprNameRef()
-            || IsExprParen();
+            || IsExprParen()
+            || IsExprUnaryOp();
     }
 
     private NodeExpr ParseExpr()
@@ -23,6 +24,8 @@ public partial class Parser
             value = ParseExprNameRef();
         else if (IsExprParen())
             value = ParseExprParen();
+        else if (IsExprUnaryOp())
+            value = ParseExprUnaryOp();
         else
             throw new InvalidOperationException("Unknown expression to parse");
 
@@ -158,6 +161,44 @@ public partial class Parser
         }
 
         return nameRef;
+    }
+
+    private bool IsExprUnaryOp()
+    {
+        return _stream.CurrentIs(TokenType.OpMinus)
+            || _stream.CurrentIs(TokenType.OpPlus)
+            || _stream.CurrentIs(TokenType.OpBang);
+    }
+
+    private NodeExpr ParseExprUnaryOp()
+    {
+        Token opToken = _stream.Consume();
+        ExprUnaryOpType type;
+        if (opToken.Type == TokenType.OpMinus)
+            type = ExprUnaryOpType.Negate;
+        else if (opToken.Type == TokenType.OpPlus)
+            type = ExprUnaryOpType.AbsoluteValue;
+        else if (opToken.Type == TokenType.OpBang)
+            type = ExprUnaryOpType.Not;
+        else
+            throw new InvalidOperationException("Unknown unary operator");
+
+        if (!IsExpr())
+        {
+            Messages.Add(new CompilerMessage(CompilerMessageType.Error,
+                "Expected expression",
+                opToken.Location, [opToken]
+            ));
+            throw new ParsingMustRecoverException();
+        }
+        
+        var value = ParseExpr();
+
+        return new NodeExprUnaryOp(value, type)
+        {
+            Location = FileLocation.CreateRange(opToken.Location, value.Location),
+            Tokens = [opToken, ..value.Tokens]
+        };
     }
     
     private List<NodeExpr> ParseExprFuncCallArgs()

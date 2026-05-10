@@ -28,7 +28,7 @@ main(args: Str[]) {
   * [ ] Functions on types (traits)
   * [ ] Expressions
     * [ ] Arithmetic/logic operators (`-` `+` `/` `*` `%` `==` `!=` `<` `>` `<=` `>=`)
-    * [ ] Unary operators (`-` `+` `!`)
+    * [X] Unary operators (`-` `+` `!`)
     * [X] Parentheses (`(expr)`)
     * [X] Primitives (numbers, bool, str)
 * [ ] Semantic analysis
