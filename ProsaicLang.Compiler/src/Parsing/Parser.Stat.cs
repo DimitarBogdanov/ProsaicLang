@@ -56,6 +56,7 @@ public partial class Parser
                     "Expected statement", _stream.Peek().Location,
                     [_stream.Peek()]
                 ));
+                throw new ParsingMustRecoverException();
             }
         }
 

@@ -1,4 +1,5 @@
 ﻿using ProsaicLang.Compiler.Ast;
+using ProsaicLang.Compiler.Data;
 using ProsaicLang.Compiler.Scanning;
 
 namespace ProsaicLang.Compiler.Parsing;
@@ -7,13 +8,16 @@ public partial class Parser
 {
     private bool IsExpr()
     {
-        return IsExprPrimitive();
+        return IsExprPrimitive()
+            || IsExprNameRef();
     }
 
     private NodeExpr ParseExpr()
     {
         if (IsExprPrimitive())
             return ParseExprPrimitive();
+        if (IsExprNameRef())
+            return ParseExprNameRef();
 
         throw new InvalidOperationException("Unknown expression to parse");
     }
@@ -63,5 +67,40 @@ public partial class Parser
             };
 
         throw new InvalidOperationException("Unknown primitive expression");
+    }
+
+    private bool IsExprNameRef()
+    {
+        return _stream.CurrentIs(TokenType.Identifier);
+    }
+
+    private NodeExpr ParseExprNameRef()
+    {
+        Token firstId = _stream.Consume();
+        
+        NodeExprNameRef nameRef = new(null, firstId.Value)
+        {
+            Location = firstId.Location,
+            Tokens = [firstId]
+        };
+
+        while (_stream.CurrentIs(TokenType.OpDot))
+        {
+            Token dotToken = _stream.Consume();
+
+            Token nameTok = _stream.Consume();
+            if (nameTok.Type != TokenType.Identifier)
+            {
+                AddErrorExpectedToken(TokenType.Identifier, "for accessor name");
+            }
+
+            nameRef = new NodeExprNameRef(nameRef, nameTok.Value)
+            {
+                Location = FileLocation.CreateRange(firstId.Location, nameTok.Location),
+                Tokens = [..nameRef.Tokens, dotToken, nameTok]
+            };
+        }
+
+        return nameRef;
     }
 }

@@ -34,6 +34,11 @@ public sealed class TokenStream
     public bool CurrentIs(TokenType type) => Peek().Type == type;
     public bool NextIs(TokenType type) => Peek(1).Type == type;
 
+    public Token[] GetTokensUntilCurrentPosition()
+    {
+        return _tokens.Take(_pos + 1).ToArray();
+    }
+
     public List<Token> GetTokenRange(Token startInclusive, Token endInclusive)
     {
         int start = _tokens.IndexOf(startInclusive);

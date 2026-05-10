@@ -25,15 +25,41 @@ public partial class Parser
         
         while (!_stream.IsEof)
         {
-            if (IsTypeDef())
+            try
             {
-                typeDefs.Add(ParseTypeDef());
-                continue;
+                if (IsTypeDef())
+                {
+                    typeDefs.Add(ParseTypeDef());
+                    continue;
+                }
+
+                if (IsFuncDef())
+                {
+                    funcDefs.Add(ParseFuncDef());
+                    continue;
+                }
             }
-            
-            if (IsFuncDef())
+            catch (ParsingMustRecoverException)
             {
-                funcDefs.Add(ParseFuncDef());
+                Token[] parsedTokens = _stream.GetTokensUntilCurrentPosition();
+                int openedBraces = parsedTokens.Count(t => t.Type == TokenType.CurlyLeft);
+                int closedBraces = parsedTokens.Count(t => t.Type == TokenType.CurlyRight);
+                if (openedBraces == closedBraces)
+                {
+                    _stream.Consume();
+                    continue;
+                }
+                
+                int remainingBraces = openedBraces - closedBraces;
+                if (remainingBraces > 0)
+                {
+                    while (!_stream.CurrentIs(TokenType.CurlyRight) && !_stream.IsEof)
+                    {
+                        _stream.Consume();
+                    }
+                }
+
+                _stream.Consume();
                 continue;
             }
 

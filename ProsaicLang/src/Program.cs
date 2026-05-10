@@ -3,19 +3,8 @@ using ProsaicLang.Compiler.Parsing;
 using ProsaicLang.Compiler.Scanning;
 
 string source = """
-                type WeatherReport {
-                    test: Int;
-                    asd: {
-                        maiko: Mai;
-                        ne: ti;
-                        varvi: {
-                            az: sum;
-                            zvqra: xd;
-                        };
-                    };
-                }
                 main(args: Str[]) -> Int {
-                    var x = true;
+                    var x = a.b;
                 }
                 """;
 using MemoryStream ms = new(Encoding.UTF8.GetBytes(source));
