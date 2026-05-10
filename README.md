@@ -26,8 +26,8 @@ main(args: Str[]) {
     * [X] Aliases
     * [ ] Enums
   * [ ] Functions on types (traits)
-  * [ ] Expressions
-    * [ ] Arithmetic/logic operators (`-` `+` `/` `*` `%` `==` `!=` `<` `>` `<=` `>=`)
+  * [X] Expressions
+    * [X] Arithmetic/logic operators (`-` `+` `/` `*` `%` `==` `!=` `<` `>` `<=` `>=`)
     * [X] Unary operators (`-` `+` `!`)
     * [X] Parentheses (`(expr)`)
     * [X] Primitives (numbers, bool, str)
