@@ -11,8 +11,10 @@ public sealed class NodeFuncDef : Node
     }
     
     public required Token NameToken { get; init; }
+    public required FuncParams Params { get; init; }
     public required NodeStat Body { get; init; }
     public required TypeRef? ReturnType { get; init; }
+    
     
     public string Name => NameToken.Value;
 }

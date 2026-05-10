@@ -15,7 +15,7 @@ public partial class Parser
     private NodeFuncDef ParseFuncDef()
     {
         Token nameTok = _stream.Consume();
-        List<(string Name, TypeRef Type)> funcParams = ParseFuncDefParams();
+        FuncParams funcParams = ParseFuncDefParams();
         TypeRef? funcRetType = null;
 
         if (_stream.CurrentIs(TokenType.Arrow))
@@ -59,18 +59,19 @@ public partial class Parser
         {
             NameToken = nameTok,
             ReturnType = funcRetType,
+            Params = funcParams,
             Body = body,
             Location = nameTok.Location,
             Tokens = _stream.GetTokenRange(nameTok, body.Tokens.Last()),
         };
     }
 
-    private List<(string Name, TypeRef Type)> ParseFuncDefParams()
+    private FuncParams ParseFuncDefParams()
     {
         if (!_stream.CurrentIs(TokenType.ParenLeft))
         {
             AddErrorExpectedToken(TokenType.ParenLeft, "to start func parameter list");
-            return [];
+            return new FuncParams { Names = [], Types = [] };
         }
 
         _stream.Consume();
@@ -144,6 +145,10 @@ public partial class Parser
             AddErrorExpectedToken(TokenType.ParenRight, "to close func parameter list");
         }
 
-        return funcParams;
+        return new FuncParams
+        {
+            Names = funcParams.Select(x => x.Name).ToArray(),
+            Types = funcParams.Select(x => x.Type).ToArray(),
+        };
     }
 }
