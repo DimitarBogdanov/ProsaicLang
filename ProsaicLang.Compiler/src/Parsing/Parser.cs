@@ -2,6 +2,7 @@
 using ProsaicLang.Compiler.Ast;
 using ProsaicLang.Compiler.Data;
 using ProsaicLang.Compiler.Scanning;
+using ProsaicLang.Compiler.Symbols;
 
 namespace ProsaicLang.Compiler.Parsing;
 
@@ -11,6 +12,7 @@ public partial class Parser
     {
         _fileName = fileName;
         _stream = new TokenStream(fileName, tokens);
+        _symbolTables = new Stack<ScopedSymbolTable>();
         Messages = [];
     }
     
@@ -18,6 +20,7 @@ public partial class Parser
     
     private readonly string _fileName;
     private readonly TokenStream _stream;
+    private readonly Stack<ScopedSymbolTable> _symbolTables;
 
     public FileUnit Run()
     {
@@ -25,6 +28,9 @@ public partial class Parser
         List<NodeTypeDef> typeDefs = [];
         List<ModuleNameRef> imports = [];
         ModuleNameRef? moduleName = null;
+        
+        var st = new ScopedSymbolTable();
+        _symbolTables.Push(st);
         
         while (!_stream.IsEof)
         {
@@ -38,7 +44,8 @@ public partial class Parser
 
                 if (IsFuncDef())
                 {
-                    funcDefs.Add(ParseFuncDef());
+                    var funcDef = ParseFuncDef();
+                    funcDefs.Add(funcDef);
                     continue;
                 }
 
@@ -121,13 +128,21 @@ public partial class Parser
             break;
         }
 
+        _symbolTables.Pop();
+        
+        if (_symbolTables.Count != 0)
+        {
+            throw new InvalidOperationException("Unbalanced amount of symbol tables");
+        }
+
         return new FileUnit
         {
             FileName = _fileName,
             ModuleNameRef = moduleName,
             Imports = imports,
             FuncDefs = funcDefs,
-            TypeDefs = typeDefs
+            TypeDefs = typeDefs,
+            SymbolTable = st
         };
     }
 

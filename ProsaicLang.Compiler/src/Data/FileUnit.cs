@@ -1,4 +1,5 @@
 ﻿using ProsaicLang.Compiler.Ast;
+using ProsaicLang.Compiler.Symbols;
 
 namespace ProsaicLang.Compiler.Data;
 
@@ -9,4 +10,5 @@ public sealed class FileUnit
     public required List<ModuleNameRef> Imports { get; init; }
     public required List<NodeFuncDef> FuncDefs { get; init; }
     public required List<NodeTypeDef> TypeDefs { get; init; }
+    public required ScopedSymbolTable SymbolTable { get; init; }
 }

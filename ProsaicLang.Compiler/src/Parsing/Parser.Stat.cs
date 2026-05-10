@@ -1,6 +1,7 @@
 ﻿using ProsaicLang.Compiler.Ast;
 using ProsaicLang.Compiler.Data;
 using ProsaicLang.Compiler.Scanning;
+using ProsaicLang.Compiler.Symbols;
 
 namespace ProsaicLang.Compiler.Parsing;
 
@@ -159,8 +160,8 @@ public partial class Parser
         }
         
         Token nameTok = _stream.Consume();
-        
-        TypeRef? specifiedType = null;
+
+        TypeRef specifiedType;
         if (_stream.CurrentIs(TokenType.Colon))
         {
             _stream.Consume(); // :
@@ -170,8 +171,18 @@ public partial class Parser
             }
             else
             {
+                specifiedType = new TypeRefUnknown([nameTok]);
                 AddErrorExpectedToken(TokenType.Identifier, "for variable type (e.g. var x: Int)");
             }
+        }
+        else
+        {
+            specifiedType = new TypeRefUnknown([nameTok]);
+            Messages.Add(new CompilerMessage(CompilerMessageType.Error,
+                "Expected type for variable",
+                nameTok.Location,
+                [nameTok]
+            ));
         }
         
         NodeExpr? initExpr = null;
@@ -201,12 +212,26 @@ public partial class Parser
             AddErrorExpectedSemicolon();
         }
 
+        SymVar symbol = new()
+        {
+            Name = nameTok.Value,
+            Type = new SymTypeUnresolved
+            {
+                Name = specifiedType.Name,
+                Location = specifiedType.Location
+            },
+            Location = nameTok.Location
+        };
+        
+        _symbolTables.Peek().AddSymbol(symbol);
+
         return new NodeStatVarDecl
         {
             NameToken = nameTok,
             SpecifiedType = specifiedType,
             Initializer = initExpr,
             Location = nameTok.Location,
+            Symbol = symbol,
             Tokens = _stream.GetTokenRange(keywordToken, _stream.Peek(-1))
         };
     }

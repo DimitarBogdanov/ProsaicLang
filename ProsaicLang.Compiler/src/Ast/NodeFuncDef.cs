@@ -1,5 +1,6 @@
 ﻿using ProsaicLang.Compiler.Data;
 using ProsaicLang.Compiler.Scanning;
+using ProsaicLang.Compiler.Symbols;
 
 namespace ProsaicLang.Compiler.Ast;
 
@@ -14,6 +15,8 @@ public sealed class NodeFuncDef : Node
     public required FuncParams Params { get; init; }
     public required NodeStat Body { get; init; }
     public required TypeRef? ReturnType { get; init; }
+    public required ScopedSymbolTable BodySymbolTable { get; init; }
+    public required Sym FuncSymbol { get; init; }
     
     
     public string Name => NameToken.Value;

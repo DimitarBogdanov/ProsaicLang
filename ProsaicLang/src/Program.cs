@@ -5,6 +5,14 @@ using ProsaicLang.Compiler.Scanning;
 string source = """
                 import std;
                 module app;
+                type MyInt = Int32
+                type WeatherReport {
+                    Europe: Winning;
+                    America: Losing;
+                    China: {
+                        It: Depends;
+                    };
+                }
                 main(args: Str[]) -> Int {
                     var x = a;
                     a = b;

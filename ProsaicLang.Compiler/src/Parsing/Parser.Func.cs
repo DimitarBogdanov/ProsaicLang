@@ -1,6 +1,7 @@
 ﻿using ProsaicLang.Compiler.Ast;
 using ProsaicLang.Compiler.Data;
 using ProsaicLang.Compiler.Scanning;
+using ProsaicLang.Compiler.Symbols;
 
 namespace ProsaicLang.Compiler.Parsing;
 
@@ -31,6 +32,8 @@ public partial class Parser
             }
         }
 
+        _symbolTables.Push(_symbolTables.Peek().Derive());
+
         NodeStat body;
         if (!IsStat())
         {
@@ -55,12 +58,37 @@ public partial class Parser
             };
         }
 
+        ScopedSymbolTable st = _symbolTables.Pop();
+
+        SymFunc symbol = new SymFunc
+        {
+            Name = nameTok.Value,
+            ReturnType = funcRetType == null
+                ? null
+                : new SymTypeUnresolved
+                {
+                    Name = funcRetType.Name,
+                    Location = funcRetType.Location,
+                },
+            ParamNames = funcParams.Names,
+            ParamTypes = funcParams.Types.Select(SymType (x) => new SymTypeUnresolved
+            {
+                Name = x.Name,
+                Location = x.Location
+            }).ToArray(),
+            Location = nameTok.Location,
+        };
+        
+        _symbolTables.Peek().AddSymbol(symbol);
+
         return new NodeFuncDef
         {
             NameToken = nameTok,
             ReturnType = funcRetType,
             Params = funcParams,
             Body = body,
+            FuncSymbol = symbol,
+            BodySymbolTable = st,
             Location = nameTok.Location,
             Tokens = _stream.GetTokenRange(nameTok, body.Tokens.Last()),
         };

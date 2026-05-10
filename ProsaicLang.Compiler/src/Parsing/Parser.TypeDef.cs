@@ -1,6 +1,7 @@
 ﻿using ProsaicLang.Compiler.Ast;
 using ProsaicLang.Compiler.Data;
 using ProsaicLang.Compiler.Scanning;
+using ProsaicLang.Compiler.Symbols;
 
 namespace ProsaicLang.Compiler.Parsing;
 
@@ -38,11 +39,25 @@ public partial class Parser
                 target = ParseTypeRef();
             }
 
+            Sym symbol = new SymTypeAlias
+            {
+                TargetType = new SymTypeUnresolved
+                {
+                    Location = target.Location,
+                    Name = target.Name
+                },
+                Name = nameTok.Value,
+                Location = nameTok.Location,
+            };
+            
+            _symbolTables.Peek().AddSymbol(symbol);
+
             return new NodeTypeDefAlias(nameTok.Value)
             {
                 TargetType = target,
                 Location = nameTok.Location,
-                Tokens = _stream.GetTokenRange(keyword, _stream.Peek(-1))
+                Tokens = _stream.GetTokenRange(keyword, _stream.Peek(-1)),
+                Symbol = symbol
             };
         }
 
@@ -62,11 +77,15 @@ public partial class Parser
                 AddErrorExpectedToken(TokenType.CurlyRight, "to close type definition");
                 lastTok = _stream.Peek(-1);
             }
+            
+            Sym structSym = CreateStructSymbol(nameTok.Value, fields);
+            _symbolTables.Peek().AddSymbol(structSym);
 
             return new NodeTypeDefStructNamed(nameTok.Value)
             {
                 Location = nameTok.Location,
                 Tokens = _stream.GetTokenRange(keyword, lastTok),
+                Symbol = structSym,
                 NameToken = nameTok,
                 Fields = fields
             };
@@ -118,12 +137,15 @@ public partial class Parser
                 {
                     lastTok = _stream.Consume(); // '}'
                 }
+                
+                Sym anonStructSym = CreateStructSymbol($"{{{fieldNameTok.Value}}}", inner);
 
                 List<Token> tokens = ((Token[])[openBraceTok, ..inner.Tokens, lastTok]).Distinct().ToList();
                 NodeTypeDefStructAnonymous anonStruct = new()
                 {
                     Fields = inner,
                     Location = inner.Location,
+                    Symbol = anonStructSym,
                     Tokens = tokens
                 };
                 fieldType = new TypeRefAnonymousStruct(anonStruct, tokens);
@@ -156,6 +178,38 @@ public partial class Parser
             Tokens = _stream.GetTokenRange(startTok, _stream.Peek(-1)),
             Names = fieldNames.ToArray(),
             Types = fieldTypes.ToArray()
+        };
+    }
+
+    private SymTypeStruct CreateStructSymbol(string name, StructFields fields)
+    {
+        string[] names = fields.Names;
+        SymType[] types = new SymType[fields.Types.Length];
+
+        for (int i = 0; i < types.Length; i++)
+        {
+            TypeRef typeRef = fields.Types[i];
+            if (typeRef is TypeRefAnonymousStruct anonStruct)
+            {
+                SymTypeStruct inner = CreateStructSymbol($"{{{names[i]}}}", anonStruct.StructDef.Fields);
+                types[i] = inner;
+            }
+            else
+            {
+                types[i] = new SymTypeUnresolved
+                {
+                    Name = typeRef.Name,
+                    Location = typeRef.Location
+                };
+            }
+        }
+
+        return new SymTypeStruct
+        {
+            Name = name,
+            FieldNames = names,
+            FieldTypes = types,
+            Location = fields.Location
         };
     }
 }
