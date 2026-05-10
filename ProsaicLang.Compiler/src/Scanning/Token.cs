@@ -33,6 +33,8 @@ public sealed class TokenType
     public static readonly TokenType OpMinus = new("-");
     public static readonly TokenType OpMul = new("*");
     public static readonly TokenType OpDiv = new("/");
+    public static readonly TokenType OpMod = new("%");
+    public static readonly TokenType OpPower = new("^");
     public static readonly TokenType OpSet = new("=");
     public static readonly TokenType OpEq = new("=");
     public static readonly TokenType OpNeq = new("!=");
