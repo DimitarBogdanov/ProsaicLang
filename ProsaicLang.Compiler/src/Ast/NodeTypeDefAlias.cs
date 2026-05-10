@@ -9,4 +9,9 @@ public sealed class NodeTypeDefAlias : NodeTypeDef
     }
     
     public required TypeRef TargetType { get; init; }
+
+    public override void AcceptVisitor(IVisitor visitor)
+    {
+        visitor.VisitTypeDefAlias(this);
+    }
 }

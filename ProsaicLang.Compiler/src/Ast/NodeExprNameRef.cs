@@ -10,4 +10,9 @@ public sealed class NodeExprNameRef : NodeExpr
     
     public NodeExpr? Parent { get; }
     public string ReferencedName { get; }
+
+    public override void AcceptVisitor(IVisitor visitor)
+    {
+        visitor.VisitExprNameRef(this);
+    }
 }

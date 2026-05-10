@@ -11,4 +11,9 @@ public sealed class NodeExprAssignment : NodeExpr
     
     public NodeExpr Target { get; }
     public NodeExpr Value { get; }
+
+    public override void AcceptVisitor(IVisitor visitor)
+    {
+        visitor.VisitExprAssignment(this);
+    }
 }

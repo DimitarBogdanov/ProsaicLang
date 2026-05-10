@@ -13,4 +13,9 @@ public class NodeTypeDefStructAnonymous : NodeTypeDef
     }
     
     public required StructFields Fields { get; init; }
+
+    public override void AcceptVisitor(IVisitor visitor)
+    {
+        visitor.VisitTypeDefStructAnonymous(this);
+    }
 }

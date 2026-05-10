@@ -21,4 +21,9 @@ public sealed class NodeStatVarDecl : NodeStat
     public override string NiceName => Initializer != null
         ? $"var {Name}{(SpecifiedType != null ? $": {SpecifiedType.Name}" : "")} = {Initializer.NiceName};"
         : Name;
+
+    public override void AcceptVisitor(IVisitor visitor)
+    {
+        visitor.VisitStatVarDecl(this);
+    }
 }

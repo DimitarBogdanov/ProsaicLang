@@ -11,4 +11,9 @@ public sealed class NodeExprFuncCall : NodeExpr
 
     public NodeExpr Func { get; }
     public List<NodeExpr> Args { get; }
+
+    public override void AcceptVisitor(IVisitor visitor)
+    {
+        visitor.VisitExprFuncCall(this);
+    }
 }

@@ -20,4 +20,9 @@ public sealed class NodeFuncDef : Node
     
     
     public string Name => NameToken.Value;
+
+    public override void AcceptVisitor(IVisitor visitor)
+    {
+        visitor.VisitFuncDef(this);
+    }
 }

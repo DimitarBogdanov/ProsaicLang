@@ -33,6 +33,11 @@ public sealed class NodeExprBinaryOp : NodeExpr
             _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
         };
     }
+
+    public override void AcceptVisitor(IVisitor visitor)
+    {
+        visitor.VisitExprBinaryOp(this);
+    }
 }
 
 public enum ExprBinaryOpType

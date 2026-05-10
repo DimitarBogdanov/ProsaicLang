@@ -14,4 +14,6 @@ public abstract class Node
     
     public required FileLocation Location { get; init; }
     public required List<Token> Tokens { get; init; }
+
+    public abstract void AcceptVisitor(IVisitor visitor);
 }

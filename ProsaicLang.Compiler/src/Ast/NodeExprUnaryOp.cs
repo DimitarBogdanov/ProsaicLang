@@ -20,6 +20,11 @@ public sealed class NodeExprUnaryOp : NodeExpr
 
     public NodeExpr Expr { get; }
     public ExprUnaryOpType Op { get; }
+
+    public override void AcceptVisitor(IVisitor visitor)
+    {
+        visitor.VisitExprUnaryOp(this);
+    }
 }
 
 public enum ExprUnaryOpType

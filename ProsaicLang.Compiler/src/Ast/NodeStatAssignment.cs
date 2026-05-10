@@ -8,4 +8,9 @@ public sealed class NodeStatAssignment : NodeStat
     }
 
     public NodeExprAssignment AssignExpr { get; }
+
+    public override void AcceptVisitor(IVisitor visitor)
+    {
+        visitor.VisitStatAssignment(this);
+    }
 }

@@ -10,4 +10,9 @@ public sealed class NodeTypeDefStructNamed : NodeTypeDefStructAnonymous
     
     public required Token NameToken { get; init; }
     public string Name => NameToken.Value;
+
+    public override void AcceptVisitor(IVisitor visitor)
+    {
+        visitor.VisitTypeDefStructNamed(this);
+    }
 }

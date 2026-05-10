@@ -8,4 +8,9 @@ public sealed class NodeStatFuncCall : NodeStat
     }
     
     public NodeExprFuncCall FuncCallExpr { get; }
+
+    public override void AcceptVisitor(IVisitor visitor)
+    {
+        visitor.VisitStatFuncCall(this);
+    }
 }

@@ -14,4 +14,9 @@ public sealed class NodeExprDecimal : NodeExpr
     public decimal Value { get; }
     
     public override string NiceName => IsParenthesized ? $"({ValueStr})" : ValueStr;
+
+    public override void AcceptVisitor(IVisitor visitor)
+    {
+        visitor.VisitExprDecimal(this);
+    }
 }

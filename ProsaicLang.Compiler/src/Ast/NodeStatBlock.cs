@@ -7,4 +7,9 @@ public sealed class NodeStatBlock : NodeStat
     }
     
     public required List<NodeStat> Children { get; init; }
+
+    public override void AcceptVisitor(IVisitor visitor)
+    {
+        visitor.VisitStatBlock(this);
+    }
 }

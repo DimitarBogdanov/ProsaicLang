@@ -14,4 +14,9 @@ public sealed class NodeExprInt : NodeExpr
     public BigInteger ValueBigInt => BigInteger.Parse(ValueStr);
     
     public override string NiceName => IsParenthesized ? $"({ValueStr})" : ValueStr;
+
+    public override void AcceptVisitor(IVisitor visitor)
+    {
+        visitor.VisitExprInt(this);
+    }
 }
