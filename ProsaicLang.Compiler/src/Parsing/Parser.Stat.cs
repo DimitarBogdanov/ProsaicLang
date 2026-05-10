@@ -52,14 +52,31 @@ public partial class Parser
                     Tokens = semicolon != null ? [..funcCall.Tokens, semicolon] : funcCall.Tokens,
                 };
             }
-            else
+            
+            if (value is NodeExprAssignment assignment)
             {
-                Messages.Add(new CompilerMessage(CompilerMessageType.Error,
-                    "Expected func call",
-                    value.Location, value.Tokens
-                ));
-                return null;
+                Token? semicolon = null;
+                if (_stream.CurrentIs(TokenType.Semicolon))
+                {
+                    semicolon = _stream.Consume();
+                }
+                else
+                {
+                    AddErrorExpectedSemicolon();
+                }
+
+                return new NodeStatAssignment(assignment)
+                {
+                    Location = assignment.Location,
+                    Tokens = semicolon != null ? [..assignment.Tokens, semicolon] : assignment.Tokens,
+                };
             }
+
+            Messages.Add(new CompilerMessage(CompilerMessageType.Error,
+                "Expected statement",
+                value.Location, value.Tokens
+            ));
+            return null;
         }
 
         throw new InvalidOperationException("Unknown statement to parse");

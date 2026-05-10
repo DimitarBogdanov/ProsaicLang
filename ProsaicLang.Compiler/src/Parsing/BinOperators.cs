@@ -6,6 +6,8 @@ public static class BinOperators
 {
     private static readonly Dictionary<TokenType, int> OpPrecedences = new()
     {
+        [TokenType.OpSet] = -1,
+        
         [TokenType.OpPlus] = 0,
         [TokenType.OpMinus] = 0,
         
@@ -36,6 +38,7 @@ public static class BinOperators
 
     public static bool IsRightAssoc(TokenType tokenType)
     {
-        return tokenType == TokenType.OpPower;
+        return tokenType == TokenType.OpPower
+            || tokenType == TokenType.OpSet;
     }
 }

@@ -91,30 +91,43 @@ public partial class Parser
 
                 NodeExpr left = terms[opIdx];
                 NodeExpr right = terms[opIdx + 1];
+                Token opToken = operators[opIdx];
                 terms.RemoveAt(opIdx + 1);
 
-                ExprBinaryOpType binaryOpType = highestPrecedenceOp.NiceName switch
+                if (highestPrecedenceOp == TokenType.OpSet)
                 {
-                    "+" => ExprBinaryOpType.Add,
-                    "-" => ExprBinaryOpType.Subtract,
-                    "*" => ExprBinaryOpType.Multiply,
-                    "/" => ExprBinaryOpType.Divide,
-                    "%" => ExprBinaryOpType.Modulo,
-                    "^" => ExprBinaryOpType.Power,
-                    "==" => ExprBinaryOpType.Equal,
-                    "!=" => ExprBinaryOpType.NotEqual,
-                    "<" => ExprBinaryOpType.LessThan,
-                    "<=" => ExprBinaryOpType.LessThanOrEqual,
-                    ">" => ExprBinaryOpType.GreaterThan,
-                    ">=" => ExprBinaryOpType.GreaterThanOrEqual,
-                    _ => throw new ArgumentOutOfRangeException()
-                };
+                    terms[opIdx] = new NodeExprAssignment(left, right)
+                    {
+                        Location = FileLocation.CreateRange(left.Location, right.Location),
+                        Tokens = [..left.Tokens, opToken, ..right.Tokens]
+                    };
+                }
+                else
+                {
+                    
+                    ExprBinaryOpType binaryOpType = highestPrecedenceOp.NiceName switch
+                    {
+                        "+" => ExprBinaryOpType.Add,
+                        "-" => ExprBinaryOpType.Subtract,
+                        "*" => ExprBinaryOpType.Multiply,
+                        "/" => ExprBinaryOpType.Divide,
+                        "%" => ExprBinaryOpType.Modulo,
+                        "^" => ExprBinaryOpType.Power,
+                        "==" => ExprBinaryOpType.Equal,
+                        "!=" => ExprBinaryOpType.NotEqual,
+                        "<" => ExprBinaryOpType.LessThan,
+                        "<=" => ExprBinaryOpType.LessThanOrEqual,
+                        ">" => ExprBinaryOpType.GreaterThan,
+                        ">=" => ExprBinaryOpType.GreaterThanOrEqual,
+                        _ => throw new ArgumentOutOfRangeException()
+                    };
 
-                terms[opIdx] = new NodeExprBinaryOp(binaryOpType, left, right)
-                {
-                    Location = FileLocation.CreateRange(left.Location, right.Location),
-                    Tokens = _stream.GetTokenRange(left.Tokens.First(), right.Tokens.Last())
-                };
+                    terms[opIdx] = new NodeExprBinaryOp(binaryOpType, left, right)
+                    {
+                        Location = FileLocation.CreateRange(left.Location, right.Location),
+                        Tokens = [..left.Tokens, opToken, ..right.Tokens]
+                    };
+                }
             }
 
             value = terms[0];
