@@ -12,5 +12,5 @@ public sealed class NodeExprBoolean : NodeExpr
     public string ValueStr => ValueToken.Value;
     public bool Value => ValueStr == "true";
 
-    public override string NiceName => ValueStr;
+    public override string NiceName => IsParenthesized ? $"({ValueStr})" : ValueStr;
 }

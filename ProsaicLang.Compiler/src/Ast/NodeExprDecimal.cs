@@ -13,5 +13,5 @@ public sealed class NodeExprDecimal : NodeExpr
     public string ValueStr => ValueToken.Value;
     public decimal Value { get; }
     
-    public override string NiceName => ValueStr;
+    public override string NiceName => IsParenthesized ? $"({ValueStr})" : ValueStr;
 }

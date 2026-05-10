@@ -155,6 +155,8 @@ public partial class Parser
         inner.Tokens.Insert(0, open);
         if (close != null)
             inner.Tokens.Add(close);
+
+        inner.IsParenthesized = true;
         
         return inner;
     }

@@ -13,5 +13,5 @@ public sealed class NodeExprInt : NodeExpr
     public string ValueStr => ValueToken.Value;
     public BigInteger ValueBigInt => BigInteger.Parse(ValueStr);
     
-    public override string NiceName => ValueStr;
+    public override string NiceName => IsParenthesized ? $"({ValueStr})" : ValueStr;
 }
