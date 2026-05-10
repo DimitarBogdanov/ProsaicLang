@@ -19,7 +19,7 @@ public partial class Parser
     private readonly string _fileName;
     private readonly TokenStream _stream;
 
-    public void Run()
+    public FileUnit Run()
     {
         List<NodeFuncDef> funcDefs = [];
         List<NodeTypeDef> typeDefs = [];
@@ -120,6 +120,15 @@ public partial class Parser
             ));
             break;
         }
+
+        return new FileUnit
+        {
+            FileName = _fileName,
+            ModuleNameRef = moduleName,
+            Imports = imports,
+            FuncDefs = funcDefs,
+            TypeDefs = typeDefs
+        };
     }
 
     private bool IsTypeRef()

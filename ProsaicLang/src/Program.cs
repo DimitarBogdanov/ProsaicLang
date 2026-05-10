@@ -18,6 +18,6 @@ lexer.Run(ms);
 lexer.Messages.ForEach(Console.WriteLine);
 
 Parser parser = new("test.pl", lexer.Tokens);
-parser.Run();
+var file = parser.Run();
 parser.Messages.ForEach(Console.WriteLine);
 
