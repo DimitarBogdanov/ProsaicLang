@@ -11,4 +11,6 @@ public sealed class NodeExprBoolean : NodeExpr
     public required Token ValueToken { get; init; }
     public string ValueStr => ValueToken.Value;
     public bool Value => ValueStr == "true";
+
+    public override string NiceName => ValueStr;
 }

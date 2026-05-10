@@ -15,14 +15,31 @@ public partial class Parser
 
     private NodeExpr ParseExpr()
     {
+        NodeExpr value;
+        
         if (IsExprPrimitive())
-            return ParseExprPrimitive();
-        if (IsExprNameRef())
-            return ParseExprNameRef();
-        if (IsExprParen())
-            return ParseExprParen();
+            value = ParseExprPrimitive();
+        else if (IsExprNameRef())
+            value = ParseExprNameRef();
+        else if (IsExprParen())
+            value = ParseExprParen();
+        else
+            throw new InvalidOperationException("Unknown expression to parse");
 
-        throw new InvalidOperationException("Unknown expression to parse");
+        while (_stream.CurrentIs(TokenType.ParenLeft))
+        {
+            // function call
+            List<NodeExpr> args = ParseExprFuncCallArgs();
+            Token lastToken = _stream.Peek(-1);
+            
+            value = new NodeExprFuncCall(value, args)
+            {
+                Location = FileLocation.CreateRange(value.Location, lastToken.Location),
+                Tokens = [..value.Tokens, ..args.Select(a => a.Tokens).SelectMany(t => t), lastToken]
+            };
+        }
+        
+        return value;
     }
 
     private bool IsExprParen()
@@ -141,5 +158,40 @@ public partial class Parser
         }
 
         return nameRef;
+    }
+    
+    private List<NodeExpr> ParseExprFuncCallArgs()
+    {
+        Token openParen = _stream.Consume();
+
+        List<NodeExpr> args = [];
+        while (IsExpr())
+        {
+            var value = ParseExpr();
+            args.Add(value);
+            if (!_stream.CurrentIs(TokenType.Comma))
+            {
+                if (IsExpr())
+                {
+                    AddErrorExpectedToken(TokenType.Comma, "to separate call arguments");
+                    continue;
+                }
+
+                break;
+            }
+
+            _stream.Consume(); // ,
+        }
+
+        if (_stream.CurrentIs(TokenType.ParenRight))
+        {
+            _stream.Consume();
+        }
+        else
+        {
+            AddErrorExpectedToken(TokenType.ParenRight, "to close call arguments");
+        }
+
+        return args;
     }
 }

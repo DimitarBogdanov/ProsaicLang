@@ -10,7 +10,7 @@ public abstract class Node
         NiceName = niceName;
     }
 
-    public string NiceName { get; }
+    public virtual string NiceName { get; }
     
     public required FileLocation Location { get; init; }
     public required List<Token> Tokens { get; init; }

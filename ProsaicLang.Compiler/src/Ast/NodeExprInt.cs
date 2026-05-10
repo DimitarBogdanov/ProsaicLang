@@ -12,4 +12,6 @@ public sealed class NodeExprInt : NodeExpr
     public required Token ValueToken { get; init; }
     public string ValueStr => ValueToken.Value;
     public BigInteger ValueBigInt => BigInteger.Parse(ValueStr);
+    
+    public override string NiceName => ValueStr;
 }
