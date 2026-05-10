@@ -48,7 +48,11 @@ public partial class Parser
         }
         else
         {
-            body = ParseStat();
+            body = ParseStat() ?? new NodeStatNoOperation
+            {
+                Location = nameTok.Location,
+                Tokens = [nameTok]
+            };
         }
 
         return new NodeFuncDef

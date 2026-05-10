@@ -19,7 +19,7 @@ main(args: Str[]) {
   * [X] Function definitions
   * [X] Variable definitions
   * [ ] Variable assignments
-  * [ ] Function calls
+  * [X] Function calls
   * [ ] Module names & importing
   * [ ] Type definitions
     * [X] Structs

@@ -10,10 +10,11 @@ public partial class Parser
     {
         return IsStatBlock()
                || IsStatNoOperation()
-               || IsStatVarDecl();
+               || IsStatVarDecl()
+               || IsExpr();
     }
 
-    private NodeStat ParseStat()
+    private NodeStat? ParseStat()
     {
         if (IsStatBlock())
         {
@@ -28,6 +29,37 @@ public partial class Parser
         if (IsStatVarDecl())
         {
             return ParseStatVarDecl();
+        }
+
+        if (IsExpr())
+        {
+            var value = ParseExpr();
+            if (value is NodeExprFuncCall funcCall)
+            {
+                Token? semicolon = null;
+                if (_stream.CurrentIs(TokenType.Semicolon))
+                {
+                    semicolon = _stream.Consume();
+                }
+                else
+                {
+                    AddErrorExpectedSemicolon();
+                }
+
+                return new NodeStatFuncCall(funcCall)
+                {
+                    Location = funcCall.Location,
+                    Tokens = semicolon != null ? [..funcCall.Tokens, semicolon] : funcCall.Tokens,
+                };
+            }
+            else
+            {
+                Messages.Add(new CompilerMessage(CompilerMessageType.Error,
+                    "Expected func call",
+                    value.Location, value.Tokens
+                ));
+                return null;
+            }
         }
 
         throw new InvalidOperationException("Unknown statement to parse");
@@ -48,7 +80,9 @@ public partial class Parser
         {
             if (IsStat())
             {
-                statements.Add(ParseStat());
+                var stat = ParseStat();
+                if (stat != null)
+                    statements.Add(stat);
             }
             else
             {
