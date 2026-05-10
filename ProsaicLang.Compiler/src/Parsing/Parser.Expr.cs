@@ -1,4 +1,5 @@
-﻿using ProsaicLang.Compiler.Ast;
+﻿using System.Text.RegularExpressions;
+using ProsaicLang.Compiler.Ast;
 using ProsaicLang.Compiler.Data;
 using ProsaicLang.Compiler.Scanning;
 
@@ -40,6 +41,83 @@ public partial class Parser
                 Location = FileLocation.CreateRange(value.Location, lastToken.Location),
                 Tokens = [..value.Tokens, ..args.Select(a => a.Tokens).SelectMany(t => t), lastToken]
             };
+        }
+
+        if (BinOperators.IsBinOp(_stream.Peek().Type))
+        {
+            // parse operator expression
+            List<NodeExpr> terms = [value];
+            List<Token> operators = [];
+
+            while (BinOperators.IsBinOp(_stream.Peek().Type))
+            {
+                Token op = _stream.Consume();
+                operators.Add(op);
+
+                if (!IsExpr())
+                {
+                    Messages.Add(new CompilerMessage(CompilerMessageType.Error,
+                        "Expected expression",
+                        op.Location, _stream.GetTokenRange(terms[0].Tokens[0], op)
+                    ));
+                    
+                    throw new ParsingMustRecoverException();
+                }
+                
+                NodeExpr rhs = ParseExpr();
+                terms.Add(rhs);
+            }
+
+            while (terms.Count > 1)
+            {
+                TokenType? highestPrecedenceOp = null;
+                foreach (Token op in operators)
+                {
+                    if (highestPrecedenceOp == null
+                        || BinOperators.GetPrecedence(op.Type) > BinOperators.GetPrecedence(highestPrecedenceOp))
+                    {
+                        highestPrecedenceOp = op.Type;
+                    }
+                }
+
+                if (highestPrecedenceOp == null)
+                {
+                    throw new InvalidOperationException("No operator found, this should not happen! :(");
+                }
+                
+                int opIdx = BinOperators.IsRightAssoc(highestPrecedenceOp)
+                    ? operators.FindLastIndex(x => x.Type == highestPrecedenceOp)
+                    : operators.FindIndex(x => x.Type == highestPrecedenceOp);
+
+                NodeExpr left = terms[opIdx];
+                NodeExpr right = terms[opIdx + 1];
+                terms.RemoveAt(opIdx + 1);
+
+                ExprBinaryOpType binaryOpType = highestPrecedenceOp.NiceName switch
+                {
+                    "+" => ExprBinaryOpType.Add,
+                    "-" => ExprBinaryOpType.Subtract,
+                    "*" => ExprBinaryOpType.Multiply,
+                    "/" => ExprBinaryOpType.Divide,
+                    "%" => ExprBinaryOpType.Modulo,
+                    "^" => ExprBinaryOpType.Power,
+                    "==" => ExprBinaryOpType.Equal,
+                    "!=" => ExprBinaryOpType.NotEqual,
+                    "<" => ExprBinaryOpType.LessThan,
+                    "<=" => ExprBinaryOpType.LessThanOrEqual,
+                    ">" => ExprBinaryOpType.GreaterThan,
+                    ">=" => ExprBinaryOpType.GreaterThanOrEqual,
+                    _ => throw new ArgumentOutOfRangeException()
+                };
+
+                terms[opIdx] = new NodeExprBinaryOp(binaryOpType, left, right)
+                {
+                    Location = FileLocation.CreateRange(left.Location, right.Location),
+                    Tokens = _stream.GetTokenRange(left.Tokens.First(), right.Tokens.Last())
+                };
+            }
+
+            value = terms[0];
         }
         
         return value;
