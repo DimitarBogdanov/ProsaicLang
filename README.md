@@ -25,6 +25,7 @@ main(args: Str[]) {
     * [X] Structs
     * [X] Aliases
     * [ ] Enums
+    * [ ] Inline anonymous structs
   * [ ] Functions on types (traits)
   * [X] Expressions
     * [X] Arithmetic/logic operators (`-` `+` `/` `*` `%` `==` `!=` `<` `>` `<=` `>=`)

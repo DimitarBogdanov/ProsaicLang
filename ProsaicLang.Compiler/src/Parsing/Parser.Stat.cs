@@ -215,11 +215,7 @@ public partial class Parser
         SymVar symbol = new()
         {
             Name = nameTok.Value,
-            Type = new SymTypeUnresolved
-            {
-                Name = specifiedType.Name,
-                Location = specifiedType.Location
-            },
+            Type = SymTypeUnresolved.CreateUnresolvedByName(specifiedType.Name, specifiedType.Location),
             Location = nameTok.Location
         };
         

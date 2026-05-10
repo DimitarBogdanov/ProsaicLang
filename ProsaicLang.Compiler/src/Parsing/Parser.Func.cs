@@ -65,17 +65,11 @@ public partial class Parser
             Name = nameTok.Value,
             ReturnType = funcRetType == null
                 ? null
-                : new SymTypeUnresolved
-                {
-                    Name = funcRetType.Name,
-                    Location = funcRetType.Location,
-                },
+                : SymTypeUnresolved.CreateUnresolvedByName(funcRetType.Name, funcRetType.Location),
             ParamNames = funcParams.Names,
-            ParamTypes = funcParams.Types.Select(SymType (x) => new SymTypeUnresolved
-            {
-                Name = x.Name,
-                Location = x.Location
-            }).ToArray(),
+            ParamTypes = funcParams.Types
+                .Select(SymType (x) => SymTypeUnresolved.CreateUnresolvedByName(x.Name, x.Location))
+                .ToArray(),
             Location = nameTok.Location,
         };
         

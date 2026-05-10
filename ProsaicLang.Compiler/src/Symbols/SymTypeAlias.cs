@@ -2,7 +2,7 @@
 
 public sealed class SymTypeAlias : SymType
 {
-    public required SymType TargetType { get; init; }
+    public required SymType TargetType { get; set; }
     
     public override bool HasUnresolvedTypeReferences()
     {

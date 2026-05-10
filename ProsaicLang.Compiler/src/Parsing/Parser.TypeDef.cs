@@ -41,15 +41,12 @@ public partial class Parser
 
             Sym symbol = new SymTypeAlias
             {
-                TargetType = new SymTypeUnresolved
-                {
-                    Location = target.Location,
-                    Name = target.Name
-                },
+                TargetType = SymTypeUnresolved.CreateUnresolvedByName(target.Name, target.Location),
                 Name = nameTok.Value,
                 Location = nameTok.Location,
             };
-            
+
+            ScopedSymbolTable st = _symbolTables.Peek();
             _symbolTables.Peek().AddSymbol(symbol);
 
             return new NodeTypeDefAlias(nameTok.Value)
@@ -99,6 +96,7 @@ public partial class Parser
         Token startTok = _stream.Peek();
         List<string> fieldNames = [];
         List<TypeRef> fieldTypes = [];
+        List<SymTypeStruct?> innerStructs = [];
 
         while (_stream.CurrentIs(TokenType.Identifier))
         {
@@ -116,6 +114,7 @@ public partial class Parser
             if (IsTypeRef())
             {
                 fieldType = ParseTypeRef();
+                innerStructs.Add(null);
             }
             else if (_stream.CurrentIs(TokenType.CurlyLeft))
             {
@@ -138,17 +137,19 @@ public partial class Parser
                     lastTok = _stream.Consume(); // '}'
                 }
                 
-                Sym anonStructSym = CreateStructSymbol($"{{{fieldNameTok.Value}}}", inner);
-
                 List<Token> tokens = ((Token[])[openBraceTok, ..inner.Tokens, lastTok]).Distinct().ToList();
+                var anonStructSymbol = CreateStructSymbol($"{{{fieldNameTok.Value}}}", inner);
+                
                 NodeTypeDefStructAnonymous anonStruct = new()
                 {
                     Fields = inner,
                     Location = inner.Location,
-                    Symbol = anonStructSym,
+                    Symbol = anonStructSymbol,
                     Tokens = tokens
                 };
+                
                 fieldType = new TypeRefAnonymousStruct(anonStruct, tokens);
+                innerStructs.Add(anonStructSymbol);
             }
             else
             {
@@ -157,6 +158,7 @@ public partial class Parser
                     [_stream.Peek()]
                 ));
                 fieldType = new TypeRefUnknown([_stream.Consume()]);
+                innerStructs.Add(null);
             }
 
             fieldNames.Add(fieldNameTok.Value);
@@ -177,7 +179,8 @@ public partial class Parser
             Location = FileLocation.CreateRange(startTok.Location, _stream.Peek(-1).Location),
             Tokens = _stream.GetTokenRange(startTok, _stream.Peek(-1)),
             Names = fieldNames.ToArray(),
-            Types = fieldTypes.ToArray()
+            Types = fieldTypes.ToArray(),
+            InnerAnonymousStructs = innerStructs.ToArray()
         };
     }
 
@@ -189,27 +192,32 @@ public partial class Parser
         for (int i = 0; i < types.Length; i++)
         {
             TypeRef typeRef = fields.Types[i];
-            if (typeRef is TypeRefAnonymousStruct anonStruct)
+            if (typeRef is TypeRefAnonymousStruct)
             {
-                SymTypeStruct inner = CreateStructSymbol($"{{{names[i]}}}", anonStruct.StructDef.Fields);
+                SymTypeStruct inner = fields.InnerAnonymousStructs[i]!;
                 types[i] = inner;
             }
             else
             {
-                types[i] = new SymTypeUnresolved
-                {
-                    Name = typeRef.Name,
-                    Location = typeRef.Location
-                };
+                types[i] = SymTypeUnresolved.CreateUnresolvedByName(typeRef.Name, typeRef.Location);
             }
         }
 
-        return new SymTypeStruct
+        var symbol = new SymTypeStruct
         {
             Name = name,
             FieldNames = names,
             FieldTypes = types,
             Location = fields.Location
         };
+        foreach (SymType type in types)
+        {
+            if (type is SymTypeStruct st)
+            {
+                st.ParentStruct = symbol;
+            }
+        }
+
+        return symbol;
     }
 }

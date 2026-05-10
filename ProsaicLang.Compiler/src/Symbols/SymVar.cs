@@ -2,7 +2,7 @@
 
 public sealed class SymVar : Sym
 {
-    public required SymType Type { get; init; }
+    public required SymType Type { get; set; }
     
     public override bool HasUnresolvedTypeReferences()
     {

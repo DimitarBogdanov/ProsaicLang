@@ -1,4 +1,5 @@
 ﻿using ProsaicLang.Compiler.Scanning;
+using ProsaicLang.Compiler.Symbols;
 
 namespace ProsaicLang.Compiler.Data;
 

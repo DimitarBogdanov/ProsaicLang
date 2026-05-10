@@ -25,10 +25,22 @@ public sealed class ScopedSymbolTable
     {
         return _symbols.Any(x => x.Name == name);
     }
+
+    public Sym? FindSymbol(string name)
+    {
+        return _symbols.FirstOrDefault(x => x.Name == name);
+    }
     
     public void AddSymbol(Sym sym)
     {
         sym.SetDefinedInTable(this);
         _symbols.Add(sym);
+    }
+    
+    public bool HasSymbolsWithUnresolvedTypeReferences()
+    {
+        _symbols.Where(x => x.HasUnresolvedTypeReferences()).ToList().ForEach(x => Console.WriteLine(x.Name));
+        return _symbols.Any(x => x.HasUnresolvedTypeReferences())
+               || _children.Any(x => x.HasSymbolsWithUnresolvedTypeReferences());
     }
 }

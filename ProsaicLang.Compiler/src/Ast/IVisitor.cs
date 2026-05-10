@@ -5,15 +5,15 @@ namespace ProsaicLang.Compiler.Ast;
 public interface IVisitor
 {
     // Top level
-    public void VisitFuncDef(NodeFuncDef funcDef);
     public void VisitTypeDefAlias(NodeTypeDefAlias typeDef);
     public void VisitTypeDefStructNamed(NodeTypeDefStructNamed typeDef);
     public void VisitTypeDefStructAnonymous(NodeTypeDefStructAnonymous typeDef);
+    public void VisitFuncDef(NodeFuncDef funcDef);
     
     // Expressions
     public void VisitExprAssignment(NodeExprAssignment assignExpr);
     public void VisitExprBinaryOp(NodeExprBinaryOp binaryOp);
-    public void VisitExprUnaryOp(NodeExprUnaryOp binaryOp);
+    public void VisitExprUnaryOp(NodeExprUnaryOp unaryOp);
     public void VisitExprFuncCall(NodeExprFuncCall funcCall);
     public void VisitExprNameRef(NodeExprNameRef nameRef);
     public void VisitExprBoolean(NodeExprBoolean boolean);
