@@ -33,6 +33,7 @@ main(args: Str[]) {
     * [X] Parentheses (`(expr)`)
     * [X] Primitives (numbers, bool, str)
 * [ ] Semantic analysis
-  * TODO
+  * [X] Type resolver
+  * [ ] Typechecker
 * [ ] Execution
   * TODO
