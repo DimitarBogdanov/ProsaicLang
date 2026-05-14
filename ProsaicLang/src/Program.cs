@@ -17,6 +17,11 @@ string source = """
                     feelsLike: Str;
                     detailed: {
                         city: WeatherReport;
+                        test: {
+                            reallyScopedIn: {
+                                wow: Celsius;
+                            };
+                        };
                     }[];
                 }
                 

@@ -84,7 +84,7 @@ public partial class Parser
         
         _stream.Consume(); // {
 
-        StructFieldData fieldData = ParseStructFields($"${nameTok.Value}", out List<StructFieldData> allDescendantStructs);
+        StructFieldData fieldData = ParseStructFields(nameTok.Value, out List<StructFieldData> allDescendantStructs);
 
         Token lastTok;
         if (_stream.CurrentIs(TokenType.CurlyRight))
@@ -98,7 +98,6 @@ public partial class Parser
         }
 
         Sym structSym = fieldData.StructSymbol;
-        structSym.Name = nameTok.Value;
         ScopedSymbolTable st = _symbolTables.Peek();
         st.AddSymbol(structSym);
         allDescendantStructs.ForEach(x => st.AddSymbol(x.StructSymbol));
@@ -270,7 +269,8 @@ public partial class Parser
             {
                 Token openBraceTok = _stream.Consume();
 
-                StructFieldData inner = ParseStructFields($"{currentStructName}.{fieldNameTok.Value}", out List<StructFieldData> innerDescs);
+                string prefix = currentStructName.Contains("::") ? "" : "$";
+                StructFieldData inner = ParseStructFields($"{prefix}{currentStructName}::{fieldNameTok.Value}", out List<StructFieldData> innerDescs);
                 allDescendantStructs.AddRange(innerDescs);
 
                 if (_stream.IsEof)
