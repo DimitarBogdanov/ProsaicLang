@@ -14,7 +14,16 @@ public sealed class TypeResolvePass : BasePass, IVisitor
     public void VisitTypeDefAlias(NodeTypeDefAlias typeDef)
     {
         SymType? target = FindTypeSymbol(typeDef.TargetType.Name);
-        if (target == null) return;
+        if (target == null)
+        {
+            Analyser.Messages.Add(new CompilerMessage(
+                CompilerMessageType.Error,
+                $"Could not find type '{typeDef.TargetType.Name}'",
+                typeDef.TargetType.Location,
+                typeDef.Tokens
+            ));
+            return;
+        }
 
         ((SymTypeAlias)typeDef.Symbol).TargetType = target;
     }
@@ -43,7 +52,8 @@ public sealed class TypeResolvePass : BasePass, IVisitor
                     Analyser.Messages.Add(new CompilerMessage(
                         CompilerMessageType.Error,
                         $"Could not find type '{fieldType.Name}'",
-                        fieldType.Location
+                        fieldType.Location,
+                        typeDef.Tokens
                     ));
                 }
                 else
@@ -78,7 +88,8 @@ public sealed class TypeResolvePass : BasePass, IVisitor
                     Analyser.Messages.Add(new CompilerMessage(
                         CompilerMessageType.Error,
                         $"Could not find type '{fieldType.Name}'",
-                        fieldType.Location
+                        fieldType.Location,
+                        typeDef.Tokens
                     ));
                 }
                 else
@@ -99,7 +110,8 @@ public sealed class TypeResolvePass : BasePass, IVisitor
                 Analyser.Messages.Add(new CompilerMessage(
                     CompilerMessageType.Error,
                     $"Could not find type '{funcDef.ReturnType.Name}'",
-                    funcDef.ReturnType.Location
+                    funcDef.ReturnType.Location,
+                    funcDef.Tokens
                 ));
             }
             else
@@ -117,7 +129,8 @@ public sealed class TypeResolvePass : BasePass, IVisitor
                 Analyser.Messages.Add(new CompilerMessage(
                     CompilerMessageType.Error,
                     $"Could not find type '{typeRef.Name}'",
-                    typeRef.Location
+                    typeRef.Location,
+                    funcDef.Tokens
                 ));
             }
             else
@@ -197,7 +210,8 @@ public sealed class TypeResolvePass : BasePass, IVisitor
             Analyser.Messages.Add(new CompilerMessage(
                 CompilerMessageType.Error,
                 $"Could not find type '{varDecl.SpecifiedType.Name}'",
-                varDecl.SpecifiedType.Location
+                varDecl.SpecifiedType.Location,
+                varDecl.Tokens
             ));
         }
         else
