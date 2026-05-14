@@ -55,6 +55,7 @@ public sealed class TokenType
     public static readonly TokenType KeywordEnum = new("enum");
     public static readonly TokenType KeywordModule = new("module");
     public static readonly TokenType KeywordImport = new("import");
+    public static readonly TokenType KeywordInterface = new("interface");
     public static readonly TokenType KeywordStruct = new("struct");
     public static readonly TokenType Eof = new("<End of file>");
 

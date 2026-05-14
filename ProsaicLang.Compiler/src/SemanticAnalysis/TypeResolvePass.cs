@@ -100,6 +100,43 @@ public sealed class TypeResolvePass : BasePass, IVisitor
         }
     }
 
+    public void VisitTypeDefInterface(NodeTypeDefInterface typeDef)
+    {
+        int methodCount = typeDef.Methods.Count;
+
+        for (int i = 0; i < methodCount; i++)
+        {
+            InterfaceMethod method = typeDef.Methods[i];
+            string name = method.Name;
+
+            SymType? retType = FindTypeSymbol(method.ReturnType.Name);
+            if (retType == null)
+            {
+                Analyser.Messages.Add(new CompilerMessage(
+                    CompilerMessageType.Error,
+                    $"Could not find type '{method.ReturnType.Name}'",
+                    method.ReturnType.Location,
+                    method.Tokens
+                ));
+            }
+
+            int paramCount = method.Params.Names.Length;
+            for (int paramIdx = 0; paramIdx < paramCount; paramIdx++)
+            {
+                SymType? paramType = FindTypeSymbol(method.Params.Types[paramIdx].Name);
+                if (paramType == null)
+                {
+                    Analyser.Messages.Add(new CompilerMessage(
+                        CompilerMessageType.Error,
+                        $"Could not find type '{method.Params.Types[paramIdx].Name}'",
+                        method.Params.Types[paramIdx].Location,
+                        method.Tokens
+                    ));
+                }
+            }
+        }
+    }
+
     public void VisitFuncDef(NodeFuncDef funcDef)
     {
         if (funcDef.ReturnType != null)

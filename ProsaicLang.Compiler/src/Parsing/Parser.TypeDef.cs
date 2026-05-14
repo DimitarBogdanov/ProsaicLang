@@ -109,7 +109,120 @@ public partial class Parser
             Fields = fields
         };
     }
+    
+    private bool IsTypeInterface()
+    {
+        return _stream.CurrentIs(TokenType.KeywordInterface);
+    }
 
+    private NodeTypeDef ParseTypeInterface()
+    {
+        Token keyword = _stream.Consume();
+
+        if (!_stream.CurrentIs(TokenType.Identifier))
+        {
+            AddErrorExpectedToken(TokenType.Identifier, "interface name");
+        }
+
+        Token nameTok = _stream.Consume();
+
+        if (!_stream.CurrentIs(TokenType.CurlyLeft))
+        {
+            AddErrorExpectedToken(TokenType.CurlyLeft, "for type definition");
+        }
+        
+        _stream.Consume(); // {
+
+        List<InterfaceMethod> methods = [];
+
+        while (_stream.CurrentIs(TokenType.Identifier) && !_stream.IsEof)
+        {
+            Token funcName = _stream.Consume();
+            FuncParams funcParams = ParseFuncDefParams();
+            TypeRef funcRetType = new TypeRefUnknown([funcName]);
+
+            if (_stream.CurrentIs(TokenType.Arrow))
+            {
+                _stream.Consume();
+                if (!IsTypeRef())
+                {
+                    AddErrorExpectedToken(TokenType.Identifier, "for func return type");
+                }
+                else
+                {
+                    funcRetType = ParseTypeRef();
+                }
+            }
+            else
+            {
+                Messages.Add(new CompilerMessage(CompilerMessageType.Error,
+                    "No specified return type for interface method",
+                    funcName.Location,
+                    [funcName]
+                ));
+            }
+            
+            methods.Add(new InterfaceMethod
+            {
+                Tokens = _stream.GetTokenRange(nameTok, _stream.Peek(-1)),
+                Location = nameTok.Location,
+                Name = nameTok.Value,
+                NameToken = nameTok,
+                Params = funcParams,
+                ReturnType = funcRetType
+            });
+
+            if (_stream.CurrentIs(TokenType.Semicolon))
+            {
+                _stream.Consume(); // ;
+            }
+            else
+            {
+                AddErrorExpectedSemicolon();
+            }
+        }
+
+        Token lastTok;
+        if (_stream.CurrentIs(TokenType.CurlyRight))
+        {
+            lastTok = _stream.Consume();
+        }
+        else
+        {
+            AddErrorExpectedToken(TokenType.CurlyRight, "to close interface definition");
+            lastTok = _stream.Peek(-1);
+        }
+
+        Sym sym = new SymTypeInterface
+        {
+            Location = nameTok.Location,
+            Name = nameTok.Value,
+            MethodNames = methods.Select(x => x.Name).ToArray(),
+            MethodParamNames = methods.Select(x => x.Params.Names.ToArray()).ToArray(),
+            MethodParamTypes = methods.Select(
+                x => x.Params.Types
+                    .Select(p => SymTypeUnresolved.CreateUnresolvedByName(p.Name, p.Location))
+                    .ToArray()
+                ).ToArray(),
+            MethodReturnTypes = methods.Select(
+                x => SymTypeUnresolved.CreateUnresolvedByName(
+                    x.ReturnType.Name,
+                    x.ReturnType.Location
+                )
+            ).ToArray(),
+        };
+        _symbolTables.Peek().AddSymbol(sym);
+
+        return new NodeTypeDefInterface(nameTok.Value)
+        {
+            Location = nameTok.Location,
+            Tokens = _stream.GetTokenRange(keyword, lastTok),
+            Symbol = sym,
+            NameToken = nameTok,
+            Methods = methods
+        };
+    }
+    
     private StructFields ParseStructFields()
     {
         Token startTok = _stream.Peek();

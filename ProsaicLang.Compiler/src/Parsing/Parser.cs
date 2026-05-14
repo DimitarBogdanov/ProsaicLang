@@ -48,6 +48,12 @@ public partial class Parser
                     continue;
                 }
 
+                if (IsTypeInterface())
+                {
+                    typeDefs.Add(ParseTypeInterface());
+                    continue;
+                }
+
                 if (IsFuncDef())
                 {
                     var funcDef = ParseFuncDef();

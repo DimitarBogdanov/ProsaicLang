@@ -20,7 +20,10 @@ string source = """
                     };
                 }
                 
-                type B = A
+                interface Report {
+                    print(x: WeatherReport);
+                }
+                
                 main(args: Str[]) -> Int {
                     var x: WeatherReport[];
                     x.temp = 10;

@@ -8,7 +8,6 @@ public sealed class SymTypeStruct : SymType
     
     public override bool HasUnresolvedTypeReferences()
     {
-        // Use a HashSet to track visited types and prevent infinite loops
         return HasUnresolvedTypeReferences([]);
     }
 
