@@ -20,8 +20,8 @@ string source = """
                     };
                 }
                 
-                interface Report {
-                    print(x: WeatherReport);
+                interface IReport {
+                    print(x: IReport) -> Int;
                 }
                 
                 main(args: Str[]) -> Int {

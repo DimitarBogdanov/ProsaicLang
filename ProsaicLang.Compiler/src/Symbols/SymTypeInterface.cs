@@ -7,8 +7,14 @@ public sealed class SymTypeInterface : SymType
     public required string[][] MethodParamNames { get; init; }
     public required SymType[][] MethodParamTypes { get; init; }
     
+    private bool _hasUnresolvedTypeReferencesVisited;
+    
     public override bool HasUnresolvedTypeReferences()
     {
+        if (_hasUnresolvedTypeReferencesVisited)
+            return false;
+        
+        _hasUnresolvedTypeReferencesVisited = true;
         return MethodParamTypes.Any(t => t.Any(tt => tt.HasUnresolvedTypeReferences()))
             || MethodReturnTypes.Any(t => t.HasUnresolvedTypeReferences());
     }

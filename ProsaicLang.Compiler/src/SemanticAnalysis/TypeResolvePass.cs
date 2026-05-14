@@ -103,6 +103,7 @@ public sealed class TypeResolvePass : BasePass, IVisitor
     public void VisitTypeDefInterface(NodeTypeDefInterface typeDef)
     {
         int methodCount = typeDef.Methods.Count;
+        SymTypeInterface interfaceSymbol = (SymTypeInterface)typeDef.Symbol;
 
         for (int i = 0; i < methodCount; i++)
         {
@@ -119,6 +120,10 @@ public sealed class TypeResolvePass : BasePass, IVisitor
                     method.Tokens
                 ));
             }
+            else
+            {
+                interfaceSymbol.MethodReturnTypes[i] = retType;
+            }
 
             int paramCount = method.Params.Names.Length;
             for (int paramIdx = 0; paramIdx < paramCount; paramIdx++)
@@ -132,6 +137,10 @@ public sealed class TypeResolvePass : BasePass, IVisitor
                         method.Params.Types[paramIdx].Location,
                         method.Tokens
                     ));
+                }
+                else
+                {
+                    interfaceSymbol.MethodParamTypes[i][paramIdx] = paramType;
                 }
             }
         }
