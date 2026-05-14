@@ -15,6 +15,7 @@ public sealed class Lexer
         ["false"] = TokenType.KeywordFalse,
         ["module"] = TokenType.KeywordModule,
         ["import"] = TokenType.KeywordImport,
+        ["struct"] = TokenType.KeywordStruct,
     };
     
     public Lexer(string fileName)

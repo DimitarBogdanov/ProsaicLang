@@ -7,12 +7,12 @@ namespace ProsaicLang.Compiler.Parsing;
 
 public partial class Parser
 {
-    private bool IsTypeDef()
+    private bool IsTypeAlias()
     {
         return _stream.CurrentIs(TokenType.KeywordType);
     }
 
-    private NodeTypeDef ParseTypeDef()
+    private NodeTypeDef ParseTypeAlias()
     {
         Token keyword = _stream.Consume();
 
@@ -23,72 +23,91 @@ public partial class Parser
 
         Token nameTok = _stream.Consume();
 
-        if (_stream.CurrentIs(TokenType.OpSet))
+        if (!_stream.CurrentIs(TokenType.OpSet))
         {
-            // alias
-            _stream.Consume();
-
-            TypeRef target;
-            if (!IsTypeRef())
-            {
-                AddErrorExpectedToken(TokenType.Identifier, "for type alias");
-                target = new TypeRefUnknown([_stream.Peek()]);
-            }
-            else
-            {
-                target = ParseTypeRef();
-            }
-
-            Sym symbol = new SymTypeAlias
-            {
-                TargetType = SymTypeUnresolved.CreateUnresolvedByName(target.Name, target.Location),
-                Name = nameTok.Value,
-                Location = nameTok.Location,
-            };
-
-            ScopedSymbolTable st = _symbolTables.Peek();
-            _symbolTables.Peek().AddSymbol(symbol);
-
-            return new NodeTypeDefAlias(nameTok.Value)
-            {
-                TargetType = target,
-                Location = nameTok.Location,
-                Tokens = _stream.GetTokenRange(keyword, _stream.Peek(-1)),
-                Symbol = symbol
-            };
+            AddErrorExpectedToken(TokenType.OpSet, "for type alias");
         }
 
-        if (_stream.CurrentIs(TokenType.CurlyLeft))
+        // alias
+        _stream.Consume();
+
+        TypeRef target;
+        if (!IsTypeRef())
         {
-            _stream.Consume(); // {
+            AddErrorExpectedToken(TokenType.Identifier, "for type alias");
+            target = new TypeRefUnknown([_stream.Peek()]);
+        }
+        else
+        {
+            target = ParseTypeRef();
+        }
 
-            StructFields fields = ParseStructFields();
+        Sym symbol = new SymTypeAlias
+        {
+            TargetType = SymTypeUnresolved.CreateUnresolvedByName(target.Name, target.Location),
+            Name = nameTok.Value,
+            Location = nameTok.Location,
+        };
 
-            Token lastTok;
-            if (_stream.CurrentIs(TokenType.CurlyRight))
-            {
-                lastTok = _stream.Consume();
-            }
-            else
-            {
-                AddErrorExpectedToken(TokenType.CurlyRight, "to close type definition");
-                lastTok = _stream.Peek(-1);
-            }
+        ScopedSymbolTable st = _symbolTables.Peek();
+        _symbolTables.Peek().AddSymbol(symbol);
+
+        return new NodeTypeDefAlias(nameTok.Value)
+        {
+            TargetType = target,
+            Location = nameTok.Location,
+            Tokens = _stream.GetTokenRange(keyword, _stream.Peek(-1)),
+            Symbol = symbol
+        };
+    }
+    
+    private bool IsTypeStruct()
+    {
+        return _stream.CurrentIs(TokenType.KeywordStruct);
+    }
+
+    private NodeTypeDef ParseTypeStruct()
+    {
+        Token keyword = _stream.Consume();
+
+        if (!_stream.CurrentIs(TokenType.Identifier))
+        {
+            AddErrorExpectedToken(TokenType.Identifier, "type name");
+        }
+
+        Token nameTok = _stream.Consume();
+
+        if (!_stream.CurrentIs(TokenType.CurlyLeft))
+        {
+            AddErrorExpectedToken(TokenType.CurlyLeft, "for type definition");
+        }
+        
+        _stream.Consume(); // {
+
+        StructFields fields = ParseStructFields();
+
+        Token lastTok;
+        if (_stream.CurrentIs(TokenType.CurlyRight))
+        {
+            lastTok = _stream.Consume();
+        }
+        else
+        {
+            AddErrorExpectedToken(TokenType.CurlyRight, "to close type definition");
+            lastTok = _stream.Peek(-1);
+        }
             
-            Sym structSym = CreateStructSymbol(nameTok.Value, fields);
-            _symbolTables.Peek().AddSymbol(structSym);
+        Sym structSym = CreateStructSymbol(nameTok.Value, fields);
+        _symbolTables.Peek().AddSymbol(structSym);
 
-            return new NodeTypeDefStructNamed(nameTok.Value)
-            {
-                Location = nameTok.Location,
-                Tokens = _stream.GetTokenRange(keyword, lastTok),
-                Symbol = structSym,
-                NameToken = nameTok,
-                Fields = fields
-            };
-        }
-
-        throw new InvalidOperationException("Unknown type definition to parse");
+        return new NodeTypeDefStructNamed(nameTok.Value)
+        {
+            Location = nameTok.Location,
+            Tokens = _stream.GetTokenRange(keyword, lastTok),
+            Symbol = structSym,
+            NameToken = nameTok,
+            Fields = fields
+        };
     }
 
     private StructFields ParseStructFields()

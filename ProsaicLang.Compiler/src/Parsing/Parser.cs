@@ -36,9 +36,15 @@ public partial class Parser
         {
             try
             {
-                if (IsTypeDef())
+                if (IsTypeAlias())
                 {
-                    typeDefs.Add(ParseTypeDef());
+                    typeDefs.Add(ParseTypeAlias());
+                    continue;
+                }
+                
+                if (IsTypeStruct())
+                {
+                    typeDefs.Add(ParseTypeStruct());
                     continue;
                 }
 

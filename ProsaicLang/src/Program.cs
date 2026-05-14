@@ -7,19 +7,19 @@ using ProsaicLang.Compiler.SemanticAnalysis;
 string source = """
                 import std;
                 module app;
-                type Value {}
+                struct Value {}
                 type Int = Value
                 type Str = Value
                 
                 type Celsius = Int
-                type WeatherReport {
+                struct WeatherReport {
                     temp: Celsius;
                     feelsLike: Str;
                     detailed: {
                         city: WeatherReport;
                     };
                 }
-                type A { b: B; }
+                
                 type B = A
                 main(args: Str[]) -> Int {
                     var x: WeatherReport[];
