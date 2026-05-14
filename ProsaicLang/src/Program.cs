@@ -17,7 +17,7 @@ string source = """
                     feelsLike: Str;
                     detailed: {
                         city: WeatherReport;
-                    };
+                    }[];
                 }
                 
                 interface IReport {

@@ -44,7 +44,7 @@ public partial class Parser
                 
                 if (IsTypeStruct())
                 {
-                    typeDefs.Add(ParseTypeStruct());
+                    typeDefs.AddRange(ParseTypeStruct());
                     continue;
                 }
 

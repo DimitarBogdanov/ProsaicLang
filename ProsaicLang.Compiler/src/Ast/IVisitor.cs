@@ -6,8 +6,7 @@ public interface IVisitor
 {
     // Top level
     public void VisitTypeDefAlias(NodeTypeDefAlias typeDef);
-    public void VisitTypeDefStructNamed(NodeTypeDefStructNamed typeDef);
-    public void VisitTypeDefStructAnonymous(NodeTypeDefStructAnonymous typeDef);
+    public void VisitTypeDefStruct(NodeTypeDefStruct typeDef);
     public void VisitTypeDefInterface(NodeTypeDefInterface typeDef);
     public void VisitFuncDef(NodeFuncDef funcDef);
     

@@ -6,7 +6,7 @@ public abstract class Sym
 {
     public ScopedSymbolTable? DefinedInTable { get; private set; }
     
-    public required string Name { get; init; }
+    public required string Name { get; set; }
     public required FileLocation Location { get; init; }
 
     public abstract bool HasUnresolvedTypeReferences();

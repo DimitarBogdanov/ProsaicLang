@@ -28,7 +28,7 @@ public sealed class TypeResolvePass : BasePass, IVisitor
         ((SymTypeAlias)typeDef.Symbol).TargetType = target;
     }
 
-    public void VisitTypeDefStructNamed(NodeTypeDefStructNamed typeDef)
+    public void VisitTypeDefStruct(NodeTypeDefStruct typeDef)
     {
         SymTypeStruct structSymbol = (SymTypeStruct)typeDef.Symbol;
 
@@ -40,62 +40,19 @@ public sealed class TypeResolvePass : BasePass, IVisitor
                 continue;
             }
 
-            if (fieldType is SymTypeStruct)
+            var fieldTypeSymbol = FindTypeSymbol(fieldType.Name);
+            if (fieldTypeSymbol == null)
             {
-                VisitTypeDefStructAnonymous(((TypeRefAnonymousStruct)typeDef.Fields.Types[i]).StructDef);
+                Analyser.Messages.Add(new CompilerMessage(
+                    CompilerMessageType.Error,
+                    $"Could not find type '{fieldType.Name}'",
+                    fieldType.Location,
+                    typeDef.Tokens
+                ));
             }
             else
             {
-                var fieldTypeSymbol = FindTypeSymbol(fieldType.Name);
-                if (fieldTypeSymbol == null)
-                {
-                    Analyser.Messages.Add(new CompilerMessage(
-                        CompilerMessageType.Error,
-                        $"Could not find type '{fieldType.Name}'",
-                        fieldType.Location,
-                        typeDef.Tokens
-                    ));
-                }
-                else
-                {
-                    structSymbol.FieldTypes[i] = fieldTypeSymbol;
-                }
-            }
-        }
-    }
-
-    public void VisitTypeDefStructAnonymous(NodeTypeDefStructAnonymous typeDef)
-    {
-        SymTypeStruct structSymbol = (SymTypeStruct)typeDef.Symbol;
-
-        for (var i = 0; i < structSymbol.FieldTypes.Length; i++)
-        {
-            var fieldType = structSymbol.FieldTypes[i];
-            if (!fieldType.HasUnresolvedTypeReferences())
-            {
-                continue;
-            }
-
-            if (fieldType is SymTypeStruct)
-            {
-                VisitTypeDefStructAnonymous(((TypeRefAnonymousStruct)typeDef.Fields.Types[i]).StructDef);
-            }
-            else
-            {
-                var fieldTypeSymbol = FindTypeSymbol(fieldType.Name);
-                if (fieldTypeSymbol == null)
-                {
-                    Analyser.Messages.Add(new CompilerMessage(
-                        CompilerMessageType.Error,
-                        $"Could not find type '{fieldType.Name}'",
-                        fieldType.Location,
-                        typeDef.Tokens
-                    ));
-                }
-                else
-                {
-                    structSymbol.FieldTypes[i] = fieldTypeSymbol;
-                }
+                structSymbol.FieldTypes[i] = fieldTypeSymbol;
             }
         }
     }

@@ -6,18 +6,14 @@ public sealed class SymTypeStruct : SymType
     public required string[] FieldNames { get; init; }
     public required SymType[] FieldTypes { get; init; }
     
+    private bool _hasUnresolvedTypeReferencesVisited;
+    
     public override bool HasUnresolvedTypeReferences()
     {
-        return HasUnresolvedTypeReferences([]);
-    }
-
-    private bool HasUnresolvedTypeReferences(HashSet<SymType> visited)
-    {
-        if (!visited.Add(this)) 
-        {
-            return false; 
-        }
-
+        if (_hasUnresolvedTypeReferencesVisited)
+            return false;
+        _hasUnresolvedTypeReferencesVisited = true;
+        
         foreach (var fieldType in FieldTypes)
         {
             SymType current = fieldType;
@@ -32,16 +28,9 @@ public sealed class SymTypeStruct : SymType
                 return true;
             }
 
-            if (current is SymTypeStruct nestedStruct)
+            if (current.HasUnresolvedTypeReferences())
             {
-                if (nestedStruct.HasUnresolvedTypeReferences(visited))
-                {
-                    return true;
-                }
-            }
-            else
-            {
-                return current.HasUnresolvedTypeReferences();
+                return true;
             }
         }
 

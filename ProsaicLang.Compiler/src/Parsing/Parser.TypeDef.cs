@@ -65,8 +65,8 @@ public partial class Parser
     {
         return _stream.CurrentIs(TokenType.KeywordStruct);
     }
-
-    private NodeTypeDef ParseTypeStruct()
+    
+    private List<NodeTypeDef> ParseTypeStruct()
     {
         Token keyword = _stream.Consume();
 
@@ -84,7 +84,7 @@ public partial class Parser
         
         _stream.Consume(); // {
 
-        StructFields fields = ParseStructFields();
+        StructFieldData fieldData = ParseStructFields($"${nameTok.Value}", out List<StructFieldData> allDescendantStructs);
 
         Token lastTok;
         if (_stream.CurrentIs(TokenType.CurlyRight))
@@ -96,18 +96,35 @@ public partial class Parser
             AddErrorExpectedToken(TokenType.CurlyRight, "to close type definition");
             lastTok = _stream.Peek(-1);
         }
-            
-        Sym structSym = CreateStructSymbol(nameTok.Value, fields);
-        _symbolTables.Peek().AddSymbol(structSym);
 
-        return new NodeTypeDefStructNamed(nameTok.Value)
+        Sym structSym = fieldData.StructSymbol;
+        structSym.Name = nameTok.Value;
+        ScopedSymbolTable st = _symbolTables.Peek();
+        st.AddSymbol(structSym);
+        allDescendantStructs.ForEach(x => st.AddSymbol(x.StructSymbol));
+
+        List<NodeTypeDef> returnStructs = new(1 + allDescendantStructs.Count)
         {
-            Location = nameTok.Location,
-            Tokens = _stream.GetTokenRange(keyword, lastTok),
-            Symbol = structSym,
-            NameToken = nameTok,
-            Fields = fields
+            new NodeTypeDefStruct(nameTok.Value)
+            {
+                Location = nameTok.Location,
+                Tokens = _stream.GetTokenRange(keyword, lastTok),
+                Symbol = structSym,
+                NameToken = nameTok,
+                FieldData = fieldData,
+            }
         };
+
+        returnStructs.AddRange(allDescendantStructs.Select(x => new NodeTypeDefStruct(x.StructName)
+        {
+            FieldData = x,
+            NameToken = x.Tokens.First(),
+            Location = x.Location,
+            Symbol = x.StructSymbol,
+            Tokens = x.Tokens
+        }));
+
+        return returnStructs;
     }
     
     private bool IsTypeInterface()
@@ -223,12 +240,13 @@ public partial class Parser
         };
     }
     
-    private StructFields ParseStructFields()
+    private StructFieldData ParseStructFields(string currentStructName, out List<StructFieldData> allDescendantStructs)
     {
         Token startTok = _stream.Peek();
         List<string> fieldNames = [];
         List<TypeRef> fieldTypes = [];
-        List<SymTypeStruct?> innerStructs = [];
+        List<StructFieldData?> directInnerStructs = [];
+        allDescendantStructs = [];
 
         while (_stream.CurrentIs(TokenType.Identifier))
         {
@@ -246,13 +264,14 @@ public partial class Parser
             if (IsTypeRef())
             {
                 fieldType = ParseTypeRef();
-                innerStructs.Add(null);
+                directInnerStructs.Add(null);
             }
             else if (_stream.CurrentIs(TokenType.CurlyLeft))
             {
                 Token openBraceTok = _stream.Consume();
 
-                StructFields inner = ParseStructFields();
+                StructFieldData inner = ParseStructFields($"{currentStructName}.{fieldNameTok.Value}", out List<StructFieldData> innerDescs);
+                allDescendantStructs.AddRange(innerDescs);
 
                 if (_stream.IsEof)
                 {
@@ -268,20 +287,21 @@ public partial class Parser
                 {
                     lastTok = _stream.Consume(); // '}'
                 }
+
+                bool isArray = false;
+                if (_stream.CurrentIs(TokenType.BracketLeft) && _stream.NextIs(TokenType.BracketRight))
+                {
+                    isArray = true;
+                    _stream.Consume(); // [
+                    _stream.Consume(); // ]
+                }
                 
                 List<Token> tokens = ((Token[])[openBraceTok, ..inner.Tokens, lastTok]).Distinct().ToList();
-                var anonStructSymbol = CreateStructSymbol($"{{{fieldNameTok.Value}}}", inner);
                 
-                NodeTypeDefStructAnonymous anonStruct = new()
-                {
-                    Fields = inner,
-                    Location = inner.Location,
-                    Symbol = anonStructSymbol,
-                    Tokens = tokens
-                };
-                
-                fieldType = new TypeRefAnonymousStruct(anonStruct, tokens);
-                innerStructs.Add(anonStructSymbol);
+                fieldType = new TypeRefNamed(inner.StructName, tokens);
+                if (isArray) fieldType = new TypeRefArr(fieldType, tokens);
+                directInnerStructs.Add(inner);
+                allDescendantStructs.Add(inner);
             }
             else
             {
@@ -290,7 +310,7 @@ public partial class Parser
                     [_stream.Peek()]
                 ));
                 fieldType = new TypeRefUnknown([_stream.Consume()]);
-                innerStructs.Add(null);
+                directInnerStructs.Add(null);
             }
 
             fieldNames.Add(fieldNameTok.Value);
@@ -306,50 +326,22 @@ public partial class Parser
             }
         }
 
-        return new StructFields
+        SymTypeStruct symbol = new SymTypeStruct
         {
+            Name = currentStructName,
+            FieldNames = fieldNames.ToArray(),
+            FieldTypes = fieldTypes.Select(x => SymTypeUnresolved.CreateUnresolvedByName(x.Name, x.Location)).ToArray(),
             Location = FileLocation.CreateRange(startTok.Location, _stream.Peek(-1).Location),
+        };
+
+        return new StructFieldData
+        {
+            StructName = symbol.Name,
+            StructSymbol = symbol,
+            Location = symbol.Location,
             Tokens = _stream.GetTokenRange(startTok, _stream.Peek(-1)),
-            Names = fieldNames.ToArray(),
-            Types = fieldTypes.ToArray(),
-            InnerAnonymousStructs = innerStructs.ToArray()
+            FieldNames = symbol.FieldNames,
+            FieldTypes = fieldTypes.ToArray(),
         };
-    }
-
-    private SymTypeStruct CreateStructSymbol(string name, StructFields fields)
-    {
-        string[] names = fields.Names;
-        SymType[] types = new SymType[fields.Types.Length];
-
-        for (int i = 0; i < types.Length; i++)
-        {
-            TypeRef typeRef = fields.Types[i];
-            if (typeRef is TypeRefAnonymousStruct)
-            {
-                SymTypeStruct inner = fields.InnerAnonymousStructs[i]!;
-                types[i] = inner;
-            }
-            else
-            {
-                types[i] = SymTypeUnresolved.CreateUnresolvedByName(typeRef.Name, typeRef.Location);
-            }
-        }
-
-        var symbol = new SymTypeStruct
-        {
-            Name = name,
-            FieldNames = names,
-            FieldTypes = types,
-            Location = fields.Location
-        };
-        foreach (SymType type in types)
-        {
-            if (type is SymTypeStruct st)
-            {
-                st.ParentStruct = symbol;
-            }
-        }
-
-        return symbol;
     }
 }
